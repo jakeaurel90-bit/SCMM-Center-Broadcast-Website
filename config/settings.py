@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-only-for-dev')
 DEBUG = False
 
 # Added localhost/127.0.0.1 so you can still test locally
-ALLOWED_HOSTS = ['www.SCMM_MCB.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['scmm-center-broadcast-website-production.up.railway.app', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
