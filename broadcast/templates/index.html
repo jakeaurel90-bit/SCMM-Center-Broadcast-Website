@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCMM Media Center Broadcast Dashboard</title>
+    <style>
+        :root {
+            --bg-dark-blue: #0b2545;
+            --panel-blue: #13315c;
+            --accent-gold: #e2b13c;
+            --accent-gold-hover: #f3c653;
+            --text-light: #ffffff;
+            --text-muted: #8da9c4;
+            --danger-red: #8b2635;
+            --danger-red-hover: #a32c3f;
+            --success-green: #00b4d8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- AUTH LAYER --- */
+        #auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--bg-dark-blue) 0%, var(--panel-blue) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 12px;
+            width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .login-logo {
+            width: 70px;
+            margin-bottom: 15px;
+        }
+
+        .login-box h2 {
+            color: var(--text-light);
+            font-size: 20px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .login-box p {
+            color: var(--accent-gold);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .login-box input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .login-box input:focus {
+            border-color: var(--accent-gold);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
+            border: none;
+            border-radius: 6px;
+            color: #222;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(196,148,41,0.3);
+            transition: all 0.2s ease;
+        }
+
+        .login-box button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(196,148,41,0.4);
+        }
+
+        /* --- MAIN APPLICATION INTERFACE --- */
+        #dashboard {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Left Sidebar Logo Pane */
+        .sidebar-brand {
+            width: 140px;
+            background-color: var(--bg-dark-blue);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 30px;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .brand-logo {
+            width: 70px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .brand-text {
+            color: var(--text-light);
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+
+        /* Main Workspace Panel */
+        .main-workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #0d2c54;
+            overflow-y: auto;
+        }
+
+        /* Master Dashboard Navigation Header */
+        header {
+            background-color: var(--bg-dark-blue);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .header-title-set {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-emblem {
+            width: 32px;
+            height: 32px;
+        }
+
+        .header-titles h2 {
+            color: var(--text-muted);
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .header-titles h1 {
+            color: var(--text-light);
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .header-user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-greeting {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .user-greeting span {
+            color: var(--text-muted);
+        }
+
+        .logout-action-btn {
+            background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
+            color: #111;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Dashboard Grid Layout Structure */
+        .dashboard-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .left-column-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Monthly Theme Banner Component */
+        .theme-banner {
+            background: linear-gradient(rgba(11, 37, 69, 0.4), rgba(11, 37, 69, 0.7)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover;
+            border-radius: 12px;
+            height: 180px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-banner::after {
+            content: '';
+            position: absolute;
+            right: 40px;
+            bottom: 10px;
+            width: 160px;
+            height: 160px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>') no-repeat center;
+            opacity: 0.15;
+        }
+
+        .theme-tag {
+            color: var(--accent-gold);
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .theme-title {
+            color: var(--text-light);
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: 0.5px;
+            max-width: 400px;
+        }
+
+        /* Dual Card Scripture Layout Container */
+        .scripture-display-rack {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .scripture-card {
+            background-color: var(--text-light);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .scripture-card-header {
+            font-size: 11px;
+            font-weight: bold;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+        }
+
+        .scripture-reference {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--bg-dark-blue);
+            margin-bottom: 4px;
+        }
+
+        .scripture-body {
+            font-size: 13.5px;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        /* Broadcast Live Engine Controller Console */
+        .broadcast-console-module {
+            background-color: var(--panel-blue);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .module-header-label {
+            color: var(--text-light);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .stream-pipeline-matrix {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .endpoint-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 120px;
+        }
+
+        .endpoint-icon-frame {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        .endpoint-label {
+            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .endpoint-status-tag {
+            font-size: 11px;
+            font-weight: bold;
+            color: #4cc9f0;
+            letter-spacing: 0.5px;
+        }
+
+        .live-video-core-preview {
+            flex: 1;
+            height: 150px;
+            background-color: #051224;
+            border-radius: 8px;
+            border: 2px solid #1a437e;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-muted);
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .live-video-core-preview video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .preview-icon-cluster {
+            display: flex;
+            gap: 15px;
+            color: rgba(255,255,255,0.2);
+            z-index: 2;
+        }
+
+        .preview-caption-state {
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            z-index: 2;
+        }
+
+        /* Actuator Trigger System Buttons */
+        .actuator-action-deck {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-actuate {
+            padding: 16px;
+            font-size: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-actuate-trigger {
+            background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
+            color: #111;
+            box-shadow: 0 4px 15px rgba(226,177,60,0.2);
+        }
+
+        .btn-actuate-trigger:hover:not(:disabled) {
+            background: linear-gradient(180deg, var(--accent-gold-hover) 0%, var(--accent-gold) 100%);
+        }
+
+        .btn-actuate-kill {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+            cursor: not-allowed;
+        }
+
+        .btn-actuate-kill.active-state {
+            background-color: var(--danger-red);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(139,38,53,0.3);
+        }
+
+        .btn-actuate-kill.active-state:hover {
+            background-color: var(--danger-red-hover);
+        }
+
+        /* Telemetry Analytical Counters Panel */
+        .telemetry-rack {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .telemetry-well {
+            background-color: rgba(0,0,0,0.15);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .telemetry-meta-label {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .telemetry-value-output {
+            color: var(--text-light);
+            font-size: 24px;
+            font-weight: bold;
+            font-family: monospace;
+            margin-bottom: 5px;
+        }
+
+        .telemetry-status-descriptor {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        /* VU Audio Level Matrix Graphic Display */
+        .vu-meter-grid-array {
+            display: flex;
+            gap: 3px;
+            height: 25px;
+            align-items: flex-end;
+            margin-top: 10px;
+        }
+
+        .vu-bar-element {
+            flex: 1;
+            height: 4px;
+            background-color: #1a437e;
+            border-radius: 1px;
+            transition: height 0.15s ease;
+        }
+
+        /* --- SYSTEM SIDEBAR TELEMETRY (RIGHT) --- */
+        .system-status-sidebar {
+            background-color: var(--panel-blue);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .sidebar-panel-header {
+            color: var(--text-light);
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 12px;
+        }
+
+        /* Precision Chronometer Matrix (Real-Time Clock Component) */
+        .chronometer-enclosure {
+            border: 2px solid var(--accent-gold);
+            border-radius: 10px;
+            padding: 15px;
+            background: radial-gradient(circle at center, #112a4d 0%, #091930 100%);
+            text-align: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
+            position: relative;
+        }
+
+        .chronometer-header-date {
+            color: var(--accent-gold);
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .chronometer-readout-time {
+            color: var(--text-light);
+            font-size: 28px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        .chronometer-readout-time span {
+            font-size: 16px;
+            margin-left: 4px;
+            color: var(--text-muted);
+        }
+
+        .chronometer-footer-location {
+            color: var(--text-muted);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        /* Health Parameter Monitoring Block */
+        .health-mon-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .health-mon-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(0,0,0,0.15);
+            padding: 12px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .health-mon-label-set {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-light);
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .health-mon-label-set svg {
+            color: var(--text-muted);
+        }
+
+        .health-mon-status-value {
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .status-positive { color: #00f5d4; }
+        .status-nominal { color: #4cc9f0; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen">
+        <div class="login-box">
+            <svg class="login-logo" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <h2>SCMM Media Login</h2>
+            <p>Broadcast Control Center</p>
+            <input type="text" id="username" placeholder="Username" autocomplete="off">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="evaluateAccessAuthentication()">Sign In</button>
+        </div>
+    </div>
+
+    <div id="dashboard" style="display:none;">
+        
+        <aside class="sidebar-brand">
+            <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="1.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <div class="brand-text">SCMM</div>
+            
+            <a href="/admin/broadcast/post/add/" style="display: block; margin-top: 15px; color: #e2b13c; font-size: 10px; text-decoration: none; border: 1px solid #e2b13c; padding: 5px 8px; border-radius: 4px; text-transform: uppercase; cursor: pointer; text-align: center;">
+                + Add Post
+            </a>
+        </aside>
+
+        <div class="main-workspace">
+            
+            <header>
+                <div class="header-title-set">
+                    <svg class="header-emblem" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <div class="header-titles">
+                        <h2>South Central Mindanao Mission</h2>
+                        <h1>MEDIA CENTER BROADCAST DASHBOARD</h1>
+                    </div>
+                </div>
+                <div class="header-user-actions">
+                    <div class="user-greeting">Hi, <span>Operator</span></div>
+                    <button class="logout-action-btn" onclick="executeInterfaceSessionTermination()">Logout</button>
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                
+                <div class="left-column-group">
+                    
+                    <div class="theme-banner">
+                        <div class="theme-tag">This Month's Theme:</div>
+                        <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
+                    </div>
+                    <div class="announcements-section" style="margin-top: 20px;">
+    {% for post in posts %}
+        <div class="scripture-card" style="margin-bottom: 15px; border-left: 5px solid #e2b13c;">
+            <div class="scripture-card-header">{{ post.title }}</div>
+            <div class="scripture-body" style="color: #333; margin-top: 5px;">{{ post.content }}</div>
+            <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">
+                {{ post.created_at|date:"F d, Y" }}
+            </div>
+        </div>
+    {% empty %}
+        <div class="scripture-card">
+            <div class="scripture-body">No announcements at this time.</div>
+        </div>
+    {% endfor %}
+</div>
+                    <div class="scripture-display-rack">
+                        <div class="scripture-card">
+                            <div class="scripture-card-header">Daily Memory Verse</div>
+                            <div class="scripture-reference" id="mv-ref">Philippians 4:13</div>
+                            <div class="scripture-body" id="mv-body">"I can do all things through Christ who strengthens me."</div>
+                        </div>
+                        <div class="scripture-card">
+                            <div class="scripture-card-header">Sabbath Focus Devotional Quote</div>
+                            <div class="scripture-reference">Proverbs 16:3</div>
+                            <div class="scripture-body">"Commit your actions to the Lord, and your plans will succeed."</div>
+                        </div>
+                    </div>
+
+                    <div class="broadcast-console-module">
+                        <div class="module-header-label">Live Streaming Control Panel</div>
+                        
+                        <div class="stream-pipeline-matrix">
+                            
+                            <div class="endpoint-node">
+                                <div class="endpoint-icon-frame">
+                                    <svg width="24" height="24" fill="#3a86ff" viewBox="0 0 24 24">
+                                        <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.8z"/>
+                                    </svg>
+                                </div>
+                                <div class="endpoint-label">FACEBOOK LIVE</div>
+                                <div class="endpoint-status-tag" id="status-fb">READY</div>
+                            </div>
+
+                            <div class="live-video-core-preview" id="video-canvas-container">
+                                <video id="hw-camera-preview" autoplay muted playsinline></video>
+                                <div class="preview-icon-cluster" id="preview-icons">
+                                    <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M12 1c-1.66 0-3 1.34-3 3v7c0 1.66 1.34 3 3 3s3-1.34 3-3V4c0-1.66-1.34-3-3-3z"/>
+                                        <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8"/>
+                                    </svg>
+                                    <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M23 7l-7 5 7 5V7zM1 5h15v14H1z"/>
+                                    </svg>
+                                </div>
+                                <div class="preview-caption-state" id="preview-text">STREAM STANDBY • READY</div>
+                            </div>
+
+                            <div class="endpoint-node">
+                                <div class="endpoint-icon-frame">
+                                    <svg width="24" height="24" fill="#ff006e" viewBox="0 0 24 24">
+                                        <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                </div>
+                                <div class="endpoint-label">YOUTUBE LIVE</div>
+                                <div class="endpoint-status-tag" id="status-yt">READY</div>
+                            </div>
+
+                        </div>
+
+                        <div class="actuator-action-deck">
+                            <button id="startBtn" class="btn-actuate btn-actuate-trigger" onclick="engageUplinkStreamingSequence()">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M5 3l14 9-14 9V3z"/>
+                                </svg>
+                                Start Streaming
+                            </button>
+                            <button id="stopBtn" class="btn-actuate btn-actuate-kill" onclick="terminateUplinkStreamingSequence()" disabled>
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                </svg>
+                                Stop Stream
+                            </button>
+                        </div>
+
+                        <div class="telemetry-rack">
+                            <div class="telemetry-well">
+                                <div class="telemetry-meta-label">FB VIEWERS <span>0</span></div>
+                                <div class="telemetry-value-output" id="telemetry-fb-val">0</div>
+                                <div class="telemetry-status-descriptor" id="telemetry-fb-desc">Stream in standby</div>
+                            </div>
+                            <div class="telemetry-well">
+                                <div class="telemetry-meta-label">YT VIEWERS <span>0</span></div>
+                                <div class="telemetry-value-output" id="telemetry-yt-val">0</div>
+                                <div class="telemetry-status-descriptor" id="telemetry-yt-desc">Stream in standby</div>
+                            </div>
+                            <div class="telemetry-well">
+                                <div class="telemetry-meta-label">AUDIO LEVEL <span>dB</span></div>
+                                <div class="telemetry-value-output" id="telemetry-audio-val">-inf</div>
+                                <div class="vu-meter-grid-array" id="vu-array"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <aside class="system-status-sidebar">
+                    <div class="sidebar-panel-header">System Status</div>
+                    
+                    <div class="chronometer-enclosure">
+                        <div class="chronometer-header-date" id="chrono-date">SUNDAY, JUNE 7, 2026</div>
+                        <div class="chronometer-readout-time" id="chrono-time">07:34:00 <span>PM</span></div>
+                        <div class="chronometer-footer-location">Kidapawan City Time</div>
+                    </div>
+
+                    <div class="health-mon-stack">
+                        <div class="health-mon-row">
+                            <div class="health-mon-label-set">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.94 0M12 20h.01"/></svg>
+                                Network Status:
+                            </div>
+                            <div class="health-mon-status-value status-positive">OK</div>
+                        </div>
+                        <div class="health-mon-row">
+                            <div class="health-mon-label-set">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                                Server Load:
+                            </div>
+                            <div class="health-mon-status-value status-nominal">LOW</div>
+                        </div>
+                        <div class="health-mon-row">
+                            <div class="health-mon-label-set">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                                API Integrations:
+                            </div>
+                            <div class="health-mon-status-value status-positive">READY</div>
+                        </div>
+                    </div>
+
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chronologicalTimeEngineId = null;
+        let syntheticAudioTelemEngineId = null;
+        let hardwareVideoMediaStreamTrack = null;
+
+        const biblicalVersesArray = [
+            { ref: "Philippians 4:13", text: "I can do all things through Christ who strengthens me." },
+            { ref: "Jeremiah 29:11", text: "For I know the plans I have for you, declares the Lord, plans for welfare and not for evil." },
+            { ref: "Proverbs 3:5", text: "Trust in the Lord with all your heart, and do not lean on your own understanding." },
+            { ref: "Isaiah 40:31", text: "But they who wait for the Lord shall renew their strength; they shall mount up with wings like eagles." },
+            { ref: "Joshua 1:9", text: "Be strong and courageous. Do not be frightened, and do not be dismayed, for the Lord your God is with you." },
+            { ref: "Romans 8:28", text: "And we know that for those who love God all things work together for good." }
+        ];
+
+        const vuArrayTargetEnclosure = document.getElementById('vu-array');
+        const processingTotalBarsCount = 18;
+        for(let idx=0; idx < processingTotalBarsCount; idx++) {
+            const barDomElement = document.createElement('div');
+            barDomElement.className = 'vu-bar-element';
+            vuArrayTargetEnclosure.appendChild(barDomElement);
+        }
+
+        function initializeChronologicalTimeEngine() {
+            function constructChronometerTicks() {
+                const targetSystemDateObject = new Date();
+                const formattingCalendarOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('chrono-date').innerText = targetSystemDateObject.toLocaleDateString('en-US', formattingCalendarOptions).toUpperCase();
+                
+                let systemCurrentHours = targetSystemDateObject.getHours();
+                const systemCurrentMinutes = String(targetSystemDateObject.getMinutes()).padStart(2, '0');
+                const systemCurrentSeconds = String(targetSystemDateObject.getSeconds()).padStart(2, '0');
+                const periodMeridiemMarker = systemCurrentHours >= 12 ? 'PM' : 'AM';
+                
+                systemCurrentHours = systemCurrentHours % 12;
+                systemCurrentHours = systemCurrentHours ? systemCurrentHours : 12;
+                const finalizedHoursString = String(systemCurrentHours).padStart(2, '0');
+
+                document.getElementById('chrono-time').innerHTML = `${finalizedHoursString}:${systemCurrentMinutes}:${systemCurrentSeconds} <span>${periodMeridiemMarker}</span>`;
+            }
+            constructChronometerTicks();
+            chronologicalTimeEngineId = setInterval(constructChronometerTicks, 1000);
+        }
+
+        // ABSOLUTE LOGIN MATCH VERIFICATION LOGIC
+        function evaluateAccessAuthentication() {
+            const userInboundInput = document.getElementById('username').value.trim();
+            const passInboundInput = document.getElementById('password').value.trim();
+
+            if (userInboundInput === "SCMM" && passInboundInput === "admin123") {
+                // First: Switch layout visibility immediately so nothing freezes
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'flex';
+                
+                // Second: Securely initialize backend interface display states
+                initializeChronologicalTimeEngine();
+                selectRandomBiblicalScriptureAsset();
+                triggerHardwareCapturePreviewPipeline();
+            } else {
+                alert("Security Authorization Rejected: Invalid operational username or password.");
+            }
+        }
+
+        function executeInterfaceSessionTermination() {
+            if(hardwareVideoMediaStreamTrack) {
+                try {
+                    hardwareVideoMediaStreamTrack.getTracks().forEach(track => track.stop());
+                } catch(e) {}
+            }
+            clearInterval(chronologicalTimeEngineId);
+            clearInterval(syntheticAudioTelemEngineId);
+            location.reload();
+        }
+
+        function selectRandomBiblicalScriptureAsset() {
+            const selectedRandomIndex = Math.floor(Math.random() * biblicalVersesArray.length);
+            const targetVerseObject = biblicalVersesArray[selectedRandomIndex];
+            document.getElementById('mv-ref').innerText = targetVerseObject.ref;
+            document.getElementById('mv-body').innerText = `"${targetVerseObject.text}"`;
+        }
+
+        async function triggerHardwareCapturePreviewPipeline() {
+            try {
+                const browserMediaStreamCapture = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                hardwareVideoMediaStreamTrack = browserMediaStreamCapture;
+                const videoDomNode = document.getElementById('hw-camera-preview');
+                videoDomNode.srcObject = browserMediaStreamCapture;
+                videoDomNode.style.display = 'block';
+                document.getElementById('preview-icons').style.display = 'none';
+            } catch (err) {
+                console.log("Local camera pipeline isolated or blocked. Reverting preview frame to graphics engine view mode safely.");
+            }
+        }
+
+        function engageUplinkStreamingSequence() {
+            document.getElementById('status-fb').innerText = "LIVE";
+            document.getElementById('status-fb').style.color = "#ff006e";
+            document.getElementById('status-yt').innerText = "LIVE";
+            document.getElementById('status-yt').style.color = "#ff006e";
+            
+            document.getElementById('preview-text').innerText = "BROADCAST TRANSMISSION ONLINE";
+            document.getElementById('preview-text').style.color = "#ff006e";
+            document.getElementById('video-canvas-container').style.borderColor = "#ff006e";
+
+            document.getElementById('telemetry-fb-desc').innerText = "Receiving outbound packet transmission";
+            document.getElementById('telemetry-yt-desc').innerText = "Receiving outbound packet transmission";
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').className = "btn-actuate btn-actuate-kill";
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('stopBtn').className = "btn-actuate btn-actuate-kill active-state";
+
+            executeAudioVUVisualSimulationEngine();
+        }
+
+        function terminateUplinkStreamingSequence() {
+            clearInterval(syntheticAudioTelemEngineId);
+            
+            document.getElementById('status-fb').innerText = "READY";
+            document.getElementById('status-fb').style.color = "#4cc9f0";
+            document.getElementById('status-yt').innerText = "READY";
+            document.getElementById('status-yt').style.color = "#4cc9f0";
+
+            document.getElementById('preview-text').innerText = "STREAM READY, PRESS START";
+            document.getElementById('preview-text').style.color = "var(--text-muted)";
+            document.getElementById('video-canvas-container').style.borderColor = "#1a437e";
+
+            document.getElementById('telemetry-fb-val').innerText = "0";
+            document.getElementById('telemetry-yt-val').innerText = "0";
+            document.getElementById('telemetry-audio-val').innerText = "-inf";
+            document.getElementById('telemetry-fb-desc').innerText = "Stream in standby";
+            document.getElementById('telemetry-yt-desc').innerText = "Stream in standby";
+
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('startBtn').className = "btn-actuate btn-actuate-trigger";
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('stopBtn').className = "btn-actuate btn-actuate-kill";
+
+            const processingBarsCollection = document.querySelectorAll('.vu-bar-element');
+            processingBarsCollection.forEach(bar => {
+                bar.style.height = '4px';
+                bar.style.backgroundColor = '#1a437e';
+            });
+        }
+
+        function executeAudioVUVisualSimulationEngine() {
+            syntheticAudioTelemEngineId = setInterval(() => {
+                const randomFbAudienceShift = Math.floor(Math.random() * 45) + 120;
+                const randomYtAudienceShift = Math.floor(Math.random() * 85) + 340;
+                document.getElementById('telemetry-fb-val').innerText = randomFbAudienceShift;
+                document.getElementById('telemetry-yt-val').innerText = randomYtAudienceShift;
+
+                const computedDecibelMatrixValue = (Math.random() * -18).toFixed(1);
+                document.getElementById('telemetry-audio-val').innerText = `${computedDecibelMatrixValue} dB`;
+
+                const processingBarsCollection = document.querySelectorAll('.vu-bar-element');
+                processingBarsCollection.forEach((barElement) => {
+                    const structuralHeightFactor = Math.floor(Math.random() * 21) + 4;
+                    barElement.style.height = `${structuralHeightFactor}px`;
+                    
+                    if (structuralHeightFactor > 20) {
+                        barElement.style.backgroundColor = '#ff006e';
+                    } else if (structuralHeightFactor > 14) {
+                        barElement.style.backgroundColor = '#e2b13c';
+                    } else {
+                        barElement.style.backgroundColor = '#00b4d8';
+                    }
+                });
+            }, 180);
+        }
+    </script>
+</body>
+</html>
