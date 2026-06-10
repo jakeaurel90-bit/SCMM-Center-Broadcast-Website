@@ -1,0 +1,64 @@
+How to move your setup to "Local Mode":
+Stop using Railway: You can leave it there if you want, but you won't need to push updates there anymore.
+
+Open your settings.py:
+
+Change DEBUG = True.
+
+You can remove the Railway URL from ALLOWED_HOSTS.
+
+Run locally:
+In your terminal on the OBS machine, just run:
+
+Bash
+python manage.py runserver 0.0.0.0:8000
+Access it:
+
+On the same machine: Open your browser to http://127.0.0.1:8000.
+
+On a second laptop (in the same room): Find your OBS computer's local IP address (run ipconfig in CMD to see your IPv4 address, e.g., 192.168.1.15). Open your second laptop's browser and type http://192.168.1.15:8000.
+
+This setup keeps all your traffic local, secure, and private, and completely bypasses the ngrok/Railway connectivity issues you've been fighting. Does your broadcasting computer stay in the same place every time you stream?
+
+
+
+
+
+
+
+Yes, you can absolutely keep using your Railway URL, but to make it functional for controlling your OBS, you have to solve the "Cloud-to-Local" connectivity problem.
+
+Because your website is in the cloud and your OBS is at home, they are separated by your home router's firewall. Here are the two ways to make this work while keeping your Railway deployment:
+
+Method 1: The "Tunnel" (The Professional way)
+This is what we were trying with ngrok. Since the free version of ngrok now requires a credit card, you can use Cloudflare Tunnel instead. It is free, secure, and does not require credit card verification.
+
+Install cloudflared on the computer running OBS.
+
+Create a Tunnel: It creates a secure path from your local OBS port to the internet.
+
+Update Railway Variables: Once the tunnel is running, you get a public URL for your OBS WebSocket. Paste this URL into your Railway > Variables (OBS_IP and OBS_PORT).
+
+Result: Your website on Railway now has a "straight line" to your OBS, and the "Connection Refused" error will disappear.
+
+Method 2: The "Reverse Proxy" (The Robust way)
+If you don't want to use tunnels, you can use a VPN like Tailscale.
+
+Install Tailscale on the computer running OBS AND on the server running your website (if you were running your own server, but since you are using Railway, this is harder).
+
+Actually, let's stick to the simplest path for Railway: Since Railway is a "managed" environment, it is difficult to install VPN clients inside it.
+
+My Recommendation: The "Hybrid" Approach
+If you are determined to keep the Railway URL, Method 1 (Cloudflare Tunnel) is your best bet. It is the modern standard for connecting local services to the cloud without opening dangerous ports on your router.
+
+If you want to try this, here is your plan:
+
+Sign up for a free Cloudflare account.
+
+Follow the Cloudflare Tunnel "Get Started" guide. It will give you a small program to run on your OBS PC.
+
+Once that program is running, it will give you a permanent, secure address for your OBS WebSocket.
+
+Update your Railway Variables with that new address.
+
+Does your broadcast computer stay on all the time, or do you turn it off when you aren't streaming? If it stays on, this Cloudflare solution will make your website work perfectly, 24/7, from anywhere in the world.
