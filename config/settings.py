@@ -7,7 +7,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-only-for-dev')
 
-DEBUG = True
+DEBUG = False
 
 # Updated ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS for Railway
 ALLOWED_HOSTS = ['*']
