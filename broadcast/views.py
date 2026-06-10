@@ -1,8 +1,9 @@
 import os
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from obswebsocket import obsws, requests
 from dotenv import load_dotenv
+from .models import Post  # Ensure you have models.py set up
 
 load_dotenv()
 
@@ -13,14 +14,27 @@ OBS_PASSWORD = os.getenv("OBS_PASSWORD")
 def get_obs_connection():
     return obsws(OBS_HOST, OBS_PORT, OBS_PASSWORD) if OBS_PASSWORD else None
 
+# --- Viewer/Public Section ---
 def public_viewer_page(request):
-    return render(request, 'broadcast/public.html')
+    """Fetches all posts to display to viewers."""
+    posts = Post.objects.all().order_by('-created_at')
+    return render(request, 'broadcast/public.html', {'posts': posts})
 
-# Removed @login_required to stop the AttributeError
+# --- Dashboard Section ---
 def index(request):
-    return render(request, 'broadcast/index.html')
+    """Renders the dashboard and lists existing posts."""
+    posts = Post.objects.all().order_by('-created_at')
+    return render(request, 'broadcast/index.html', {'posts': posts})
 
-# Removed @login_required to stop the AttributeError
+def add_post(request):
+    """Saves a new announcement from the dashboard."""
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            Post.objects.create(content=content)
+    return redirect('dashboard')
+
+# --- OBS Control Section ---
 def start_stream(request):
     try:
         ws = get_obs_connection()
@@ -31,7 +45,6 @@ def start_stream(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-# Removed @login_required to stop the AttributeError
 def stop_stream(request):
     try:
         ws = get_obs_connection()
