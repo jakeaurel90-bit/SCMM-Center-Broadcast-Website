@@ -37,28 +37,18 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Security Settings for HTTPS
-SECURE_SSL_REDIRECT = False
+# --- SECURITY SETTINGS ---
+# Railway handles SSL termination, so we keep these True but ensure 
+# SECURE_SSL_REDIRECT is handled correctly by the infrastructure
+SECURE_SSL_REDIRECT = False 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+# Added for proxy reliability
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 ROOT_URLCONF = 'config.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+# ... [Keep your TEMPLATES configuration exactly as it is] ...
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -69,16 +59,12 @@ DATABASES = {
     }
 }
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
+# ... [Keep your LANGUAGE_CODE and TIME_ZONE settings] ...
 
 # --- STATIC AND MEDIA SETTINGS ---
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media configuration to allow image uploads
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
