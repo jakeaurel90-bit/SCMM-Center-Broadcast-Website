@@ -4,8 +4,8 @@ class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     
-    # We use a string path instead of importing the class directly.
-    # This prevents the ImportError during the build process.
+    # Using the string reference for the storage backend is the most 
+    # compatible way to handle this across different library versions.
     image = models.ImageField(
         upload_to='post_images/', 
         storage='cloudinary_storage.storage.MediaCloudStorage', 

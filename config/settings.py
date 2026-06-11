@@ -71,7 +71,11 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
+# Use MediaCloudStorage for file uploads
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudStorage'
+
+# CORRECT MEDIA_URL
+MEDIA_URL = '/media/'
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -81,5 +85,3 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-MEDIA_URL = 'https://res.cloudinary.com/'
