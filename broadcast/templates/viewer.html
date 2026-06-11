@@ -2,24 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCMM Live Media Center</title>
     <style>
         :root { --bg-dark-blue: #0b2545; --accent-gold: #e2b13c; --text-light: #ffffff; }
-        body { font-family: sans-serif; background-color: var(--bg-dark-blue); color: var(--text-light); margin: 0; padding: 20px; }
-        .page-wrapper { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-dark-blue); color: var(--text-light); margin: 0; padding: 20px; }
+        .page-wrapper { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
         .stream-column { display: flex; flex-direction: column; gap: 20px; }
-        .stream-box { background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; width: 100%; margin-bottom: 20px; }
+        .stream-box { background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; width: 100%; border: 2px solid var(--accent-gold); }
         iframe { width: 100%; height: 100%; border: none; }
-        .posts-section { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; }
-        .post-card { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; margin-bottom: 15px; }
+        .posts-section { background: rgba(255,255,255,0.05); padding: 25px; border-radius: 12px; height: fit-content; }
+        .post-card { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-gold); }
         .post-card h3 { color: var(--accent-gold); margin: 0 0 10px 0; }
-        /* Added styling for images */
-        .post-image { width: 100%; border-radius: 6px; margin-bottom: 10px; display: block; }
+        .post-image { width: 100%; height: auto; border-radius: 6px; margin-bottom: 12px; display: block; object-fit: cover; }
         @media (max-width: 900px) { .page-wrapper { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">SCMM Live Broadcast</h1>
+    <h1 style="text-align: center; color: var(--accent-gold);">SCMM Live Broadcast</h1>
     <div class="page-wrapper">
         <div class="stream-column">
             <h3>YouTube Live</h3>
@@ -37,7 +37,7 @@
             {% for post in posts %}
                 <div class="post-card">
                     {% if post.image %}
-                        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="post-image">
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="post-image" loading="lazy">
                     {% endif %}
                     
                     <h3>{{ post.title }}</h3>
