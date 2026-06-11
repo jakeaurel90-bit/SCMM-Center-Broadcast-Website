@@ -64,18 +64,18 @@ DATABASES = {
     }
 }
 
-# CLOUDINARY CONFIGURATION
+# Cloudinary Configuration
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-# Use MediaCloudStorage for file uploads
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudStorage'
-
-# CORRECT MEDIA_URL
 MEDIA_URL = '/media/'
+
+# Fixes models.W042 warning
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
