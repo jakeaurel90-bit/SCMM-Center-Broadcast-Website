@@ -1,15 +1,14 @@
 from django.db import models
-from cloudinary_storage.storage import MediaCloudStorage
 
 class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     
-    # By adding 'storage=MediaCloudStorage()', we force Django 
-    # to send this image directly to Cloudinary, not the local server.
+    # We use a string path instead of importing the class directly.
+    # This prevents the ImportError during the build process.
     image = models.ImageField(
         upload_to='post_images/', 
-        storage=MediaCloudStorage(), 
+        storage='cloudinary_storage.storage.MediaCloudStorage', 
         blank=True, 
         null=True
     )
