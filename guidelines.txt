@@ -1,0 +1,63 @@
+TO OPEN THE WEBSITE:
+USERNAME: SCMM
+PASSWORD: admin123
+
+TO POST INSIDE THE WEBSITE (LOG IN)
+USERNAME: ADMIN
+PASSWORD: admin123
+
+FOR VIEWERS WHO WANTS TO SEE THE LIVE CLICK THE LINK BELOW:
+https://scmm-center-broadcast-website-production.up.railway.app/live/
+
+
+
+
+
+
+GUIDE TO RUN THE STREAM WITH YOUTUBE:
+
+To find the streaming settings in OBS Studio, follow these steps:
+
+Open OBS Studio.
+
+In the bottom-right corner, click the Settings button (or go to File > Settings in the top menu).
+
+On the left-hand sidebar, click the Stream tab.
+
+You will see a dropdown menu labeled Service.
+
+How to configure it for testing:
+If you are streaming directly to YouTube:
+
+Select YouTube - RTMPS from the Service dropdown.
+
+Click the Connect account (recommended) button to log in with your YouTube account, or choose Use stream key (advanced) if you have a specific key.
+
+If you are trying to stream through your website:
+
+You must select Custom from the Service dropdown.
+
+In the Server field, you would type your website's URL (e.g., rtmp://scmm-center-broadcast-website-production.up.railway.app/live).
+
+In the Stream Key field, enter the key your website is expecting.
+
+A Critical Note on OBS Settings
+If you choose Custom, OBS will send your video data to that URL. However, for this to actually reach YouTube or Facebook, your website's server (on Railway) must be running software like an RTMP server (like Nginx with RTMP module) to "listen" for that data and forward it. If you haven't installed and configured an RTMP server within your Django project/Railway deployment, OBS will simply return an "Authentication Failed" or "Could not connect to server" error.
+
+Have you already set up an RTMP server or a streaming-specific library within your Django project to "catch" the incoming stream from OBS?
+
+
+
+FOR ADVANCE IMPROVEMENT
+
+To move toward an automated setup, we need to prepare your views.py to communicate with the YouTube API.
+
+Important: Before you can use this code, you must:
+
+Go to the Google Cloud Console.
+
+Create a project and enable the YouTube Data API v3.
+
+Create OAuth 2.0 Client ID credentials.
+
+Install the library: pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib.

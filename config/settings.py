@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-only-for-dev')
 DEBUG = False
 
 # Updated ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS for Railway
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['scmm-center-broadcast-website-production.up.railway.app']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://scmm-center-broadcast-website-production.up.railway.app',
@@ -36,6 +36,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 # Security Settings for HTTPS
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
@@ -73,6 +74,11 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# --- STATIC AND MEDIA SETTINGS ---
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media configuration to allow image uploads
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

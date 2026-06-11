@@ -13,6 +13,8 @@
         .posts-section { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; }
         .post-card { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; margin-bottom: 15px; }
         .post-card h3 { color: var(--accent-gold); margin: 0 0 10px 0; }
+        /* Added styling for images */
+        .post-image { width: 100%; border-radius: 6px; margin-bottom: 10px; display: block; }
         @media (max-width: 900px) { .page-wrapper { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -29,12 +31,18 @@
                 <iframe src="https://www.facebook.com/plugins/video.php?href=https://www.facebook.com/YOUR_PAGE_URL" allowfullscreen></iframe>
             </div>
         </div>
+        
         <div class="posts-section">
             <h2>Latest Updates</h2>
             {% for post in posts %}
                 <div class="post-card">
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="post-image">
+                    {% endif %}
+                    
                     <h3>{{ post.title }}</h3>
                     <p>{{ post.content }}</p>
+                    <small style="color: #aaa;">{{ post.created_at|date:"F d, Y" }}</small>
                 </div>
             {% empty %}
                 <p>No new announcements.</p>
