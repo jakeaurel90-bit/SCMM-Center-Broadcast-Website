@@ -1,5 +1,4 @@
 import os
-import sys
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
@@ -54,14 +53,24 @@ TEMPLATES = [
     },
 ]
 
-# Database
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'sqlite:///' + str(BASE_DIR / 'db.sqlite3')),
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+# Robust Database Configuration
+# This safely handles the DATABASE_URL to prevent the 'port' casting error
+db_url = os.getenv('DATABASE_URL')
+if db_url:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=db_url,
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Cloudinary
 CLOUDINARY_STORAGE = {
@@ -70,7 +79,7 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-# Legacy Storage (Required to fix InvalidStorageError)
+# Legacy Storage
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
