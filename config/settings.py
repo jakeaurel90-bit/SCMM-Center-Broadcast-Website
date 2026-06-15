@@ -88,7 +88,8 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': cloudinary_secret,
 }
 
-# MODERN STORAGE CONFIGURATION (Fixes the AttributeError)
+# MODERN STORAGE CONFIGURATION
+# Note: DEFAULT_FILE_STORAGE has been removed to avoid conflict with STORAGES
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudStorage",
