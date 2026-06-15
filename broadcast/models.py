@@ -4,11 +4,11 @@ class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     
-    # Using the string reference for the storage backend is the most 
-    # compatible way to handle this across different library versions.
+    # The 'storage' argument is omitted so that Django uses 
+    # the 'default' backend defined in the STORAGES dictionary 
+    # in settings.py (Cloudinary).
     image = models.ImageField(
         upload_to='post_images/', 
-        storage='cloudinary_storage.storage.MediaCloudStorage', 
         blank=True, 
         null=True
     )
