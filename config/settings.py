@@ -7,9 +7,12 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-only-for-dev')
-DEBUG = False
-ALLOWED_HOSTS = ['scmm-center-broadcast-website-production.up.railway.app']
+
+# FIX: Dynamic DEBUG and ALLOWED_HOSTS for Railway
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = ['scmm-center-broadcast-website-production.up.railway.app', '*']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://scmm-center-broadcast-website-production.up.railway.app',
@@ -58,12 +61,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database Configuration with SQLite Fallback and Conditional SSL
+# Database Configuration
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=os.getenv('DATABASE_URL', '').startswith('postgres')
+        ssl_require=True
     )
 }
 
