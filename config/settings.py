@@ -45,7 +45,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
-        'APP_DIRS': True, # Required to find your 'broadcast/templates/' folder
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -57,7 +57,7 @@ TEMPLATES = [
     },
 ]
 
-# Robust Database Configuration
+# Database Configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
     try:
@@ -68,30 +68,24 @@ else:
     DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
 
 # Cloudinary Configuration
-cloudinary_name = os.getenv('CLOUDINARY_CLOUD_NAME')
-cloudinary_key = os.getenv('CLOUDINARY_API_KEY')
-cloudinary_secret = os.getenv('CLOUDINARY_API_SECRET')
-
-is_collectstatic = any(arg == 'collectstatic' for arg in sys.argv)
-if not is_collectstatic and not DEBUG and not all([cloudinary_name, cloudinary_key, cloudinary_secret]):
-    raise ImproperlyConfigured("Cloudinary credentials are missing.")
-
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': cloudinary_name,
-    'API_KEY': cloudinary_key,
-    'API_SECRET': cloudinary_secret,
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-# LEGACY STORAGE CONFIGURATION (Required for version 0.3.0)
+# LEGACY STORAGE CONFIGURATION (Prevents InvalidStorageError)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = ''
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
