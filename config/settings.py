@@ -1,5 +1,5 @@
 import os
-import dj_database_url  # Import this
+import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -58,12 +58,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Updated Database Configuration
+# Database Configuration with SQLite Fallback and Conditional SSL
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=os.getenv('DATABASE_URL', '').startswith('postgres')
     )
 }
 
