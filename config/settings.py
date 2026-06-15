@@ -2,17 +2,17 @@ import os
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-only-for-dev')
 
-# FIX: Dynamic DEBUG and ALLOWED_HOSTS for Railway
+# Dynamic DEBUG and ALLOWED_HOSTS
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['scmm-center-broadcast-website-production.up.railway.app', '*']
+ALLOWED_HOSTS = ['scmm-center-broadcast-website-production.up.railway.app', 'localhost', '127.0.0.1', '*']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://scmm-center-broadcast-website-production.up.railway.app',
@@ -70,11 +70,19 @@ DATABASES = {
     )
 }
 
-# Cloudinary Configuration
+# Cloudinary Configuration with Validation
+cloudinary_name = os.getenv('CLOUDINARY_CLOUD_NAME')
+cloudinary_key = os.getenv('CLOUDINARY_API_KEY')
+cloudinary_secret = os.getenv('CLOUDINARY_API_SECRET')
+
+if not all([cloudinary_name, cloudinary_key, cloudinary_secret]):
+    # This will prevent the confusing AttributeError and tell you exactly what's wrong
+    raise ImproperlyConfigured("Cloudinary credentials are missing from environment variables.")
+
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    'CLOUD_NAME': cloudinary_name,
+    'API_KEY': cloudinary_key,
+    'API_SECRET': cloudinary_secret,
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudStorage'
