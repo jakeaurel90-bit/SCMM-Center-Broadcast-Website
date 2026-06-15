@@ -1,7 +1,7 @@
 import os
-import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 load_dotenv()
 
@@ -53,24 +53,31 @@ TEMPLATES = [
     },
 ]
 
-# Robust Database Configuration
-# This safely handles the DATABASE_URL to prevent the 'port' casting error
+# --- ROBUST DATABASE CONFIGURATION ---
 db_url = os.getenv('DATABASE_URL')
-if db_url:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=db_url,
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+
+def get_db_config():
+    if not db_url or db_url == "port": 
+        return None
+    try:
+        url = urlparse(db_url)
+        return {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:] if url.path else 'railway',
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': int(url.port) if url.port else 5432,
+            'CONN_MAX_AGE': 600,
+            'OPTIONS': {'sslmode': 'require'}
         }
-    }
+    except (ValueError, TypeError):
+        return None
+
+db_config = get_db_config()
+DATABASES = {'default': db_config} if db_config else {
+    'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}
+}
 
 # Cloudinary
 CLOUDINARY_STORAGE = {
@@ -79,9 +86,15 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-# Legacy Storage
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudStorage'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# --- STORAGE CONFIGURATION ---
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = ''
