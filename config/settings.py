@@ -1,4 +1,5 @@
 import os
+import sys
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
@@ -70,13 +71,15 @@ DATABASES = {
     )
 }
 
-# Cloudinary Configuration with Validation
+# Cloudinary Configuration with Build-Time Safety
 cloudinary_name = os.getenv('CLOUDINARY_CLOUD_NAME')
 cloudinary_key = os.getenv('CLOUDINARY_API_KEY')
 cloudinary_secret = os.getenv('CLOUDINARY_API_SECRET')
 
-if not all([cloudinary_name, cloudinary_key, cloudinary_secret]):
-    # This will prevent the confusing AttributeError and tell you exactly what's wrong
+# We skip the check if we are running 'collectstatic' so the build succeeds
+is_collectstatic = any(arg == 'collectstatic' for arg in sys.argv)
+
+if not is_collectstatic and not all([cloudinary_name, cloudinary_key, cloudinary_secret]):
     raise ImproperlyConfigured("Cloudinary credentials are missing from environment variables.")
 
 CLOUDINARY_STORAGE = {
