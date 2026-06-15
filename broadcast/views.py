@@ -3,13 +3,17 @@ from django.http import JsonResponse
 from .models import Post
 
 def index(request):
+    # Fetch posts, ordered by newest first
     posts = Post.objects.all().order_by('-created_at')
-    return render(request, 'index.html', {'posts': posts})
+    
+    # Updated to match your folder structure: templates/broadcast/index.html
+    return render(request, 'broadcast/index.html', {'posts': posts})
 
 def live_viewer(request):
-    # Fetch posts to show in the sidebar of the live page
     posts = Post.objects.all().order_by('-created_at')
-    return render(request, 'viewer.html', {'posts': posts})
+    
+    # Assuming viewer.html is also inside templates/broadcast/
+    return render(request, 'broadcast/viewer.html', {'posts': posts})
 
 def start_stream(request):
     return JsonResponse({'status': 'Streaming logic triggered'})
