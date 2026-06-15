@@ -11,13 +11,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-only-for-dev')
 
-# Dynamic DEBUG and ALLOWED_HOSTS
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['scmm-center-broadcast-website-production.up.railway.app', 'localhost', '127.0.0.1', '*']
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://scmm-center-broadcast-website-production.up.railway.app',
-]
+CSRF_TRUSTED_ORIGINS = ['https://scmm-center-broadcast-website-production.up.railway.app']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -44,43 +41,24 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+# Robust Database Configuration
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    try:
+        DATABASES = {'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=True)}
+    except Exception:
+        DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
+else:
+    DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
 
-WSGI_APPLICATION = 'config.wsgi.application'
-
-# Database Configuration
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
-
-# Cloudinary Configuration with Build-Time Safety
+# Cloudinary Configuration
 cloudinary_name = os.getenv('CLOUDINARY_CLOUD_NAME')
 cloudinary_key = os.getenv('CLOUDINARY_API_KEY')
 cloudinary_secret = os.getenv('CLOUDINARY_API_SECRET')
 
-# We skip the check if we are running 'collectstatic' so the build succeeds
 is_collectstatic = any(arg == 'collectstatic' for arg in sys.argv)
-
-if not is_collectstatic and not all([cloudinary_name, cloudinary_key, cloudinary_secret]):
-    raise ImproperlyConfigured("Cloudinary credentials are missing from environment variables.")
+if not is_collectstatic and not DEBUG and not all([cloudinary_name, cloudinary_key, cloudinary_secret]):
+    raise ImproperlyConfigured("Cloudinary credentials are missing.")
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': cloudinary_name,
@@ -88,24 +66,16 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': cloudinary_secret,
 }
 
-# MODERN STORAGE CONFIGURATION
-# Note: DEFAULT_FILE_STORAGE has been removed to avoid conflict with STORAGES
-STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+# LEGACY STORAGE CONFIGURATION (Required for version 0.3.0)
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
+MEDIA_ROOT = ''
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
