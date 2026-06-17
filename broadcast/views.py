@@ -1,8 +1,7 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from .models import Post, Comment
 
-# ADDED THIS BACK to satisfy your urls.py
 def index(request):
     posts = Post.objects.all()
     return render(request, 'broadcast/index.html', {'posts': posts})
@@ -10,7 +9,7 @@ def index(request):
 def live_viewer(request):
     latest_post = Post.objects.order_by('-created_at').first()
     
-    # 1. Handle Comment Submission (Triggered by the FORM)
+    # 1. Handle Comment Submission
     if request.method == 'POST' and latest_post:
         name = request.POST.get('name')
         body = request.POST.get('body')
@@ -18,16 +17,28 @@ def live_viewer(request):
             Comment.objects.create(post=latest_post, name=name, body=body)
         return render(request, 'broadcast/partials/comment_list.html', {'post': latest_post})
 
-    # 2. Handle HTMX Polling (Triggered by the ANNOUNCEMENT div)
+    # 2. Handle HTMX Polling
     if request.headers.get('X-HTMX-Polling') == 'true':
         return render(request, 'broadcast/partials/post_update.html', {'post': latest_post})
 
-    # 3. Standard Load (Returns full page - no header present)
+    # 3. Standard Load
     return render(request, 'broadcast/viewer.html', {'post': latest_post})
 
-# Keep your other helper functions below...
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.method == 'POST':
+        comment.body = request.POST.get('body')
+        comment.save()
+        return redirect('live_viewer')
+    return render(request, 'broadcast/edit_comment.html', {'comment': comment})
+
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    comment.delete()
+    return redirect('live_viewer')
+
 def start_stream(request):
-    return HttpResponse({'status': 'Streaming logic triggered'})
+    return HttpResponse('Streaming logic triggered')
 
 def stop_stream(request):
-    return HttpResponse({'status': 'Streaming stopped'})
+    return HttpResponse('Streaming stopped')
