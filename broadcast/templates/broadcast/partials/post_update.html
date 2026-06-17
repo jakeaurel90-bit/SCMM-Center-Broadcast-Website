@@ -24,7 +24,8 @@
 
         <form hx-post="{% url 'live_viewer' %}" 
               hx-target="#update-content" 
-              hx-swap="innerHTML">
+              hx-swap="innerHTML"
+              hx-on::after-request="if(event.detail.successful) this.reset()">
             {% csrf_token %}
             <input type="text" name="name" placeholder="Your Name" required style="width: 100%; padding: 8px; margin-bottom: 5px; background: #fff; color: #000; border: none;">
             <textarea name="body" placeholder="Write a comment..." required style="width: 100%; padding: 8px; background: #fff; color: #000; border: none;"></textarea>
