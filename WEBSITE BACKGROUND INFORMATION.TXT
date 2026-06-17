@@ -1,0 +1,23 @@
+The "Go Stream" button in your dashboard typically serves as the trigger or "handshake" mechanism that tells your application to prepare for, initiate, or signal that a broadcast is live.
+
+In a Django-based streaming platform, this button usually performs one or more of the following background tasks:
+
+1. Activating the Streaming Connection
+When you click "Go Stream," your backend code (in views.py) is likely executing a function that communicates with an external API (like YouTube Live, Twitch, or a custom RTMP server). It tells the platform, "I am ready to receive a video signal now."
+
+2. Updating the "Live" State
+If your website needs to know whether the stream is active (to show a "LIVE" badge or to toggle the visibility of the stream player), this button sets a flag in your database.
+
+Once clicked, your Post or Stream model might update a status field (e.g., is_live = True).
+
+Your frontend then detects this status change and displays the embedded video player to your viewers.
+
+3. Signaling the "Handshake"
+In advanced setups, this button might be the start of a Websocket or EventStream connection (using Django Channels or similar tools). It notifies the server that the broadcast has started, which allows the server to broadcast a "Stream Started" alert to all your users currently looking at the viewer.html page in real-time.
+
+Why it doesn't "Auto-Switch" the Video
+As we discussed earlier, your website embeds a player from a service like YouTube. The "Go Stream" button in your dashboard controls the logic of your website (like status alerts, database updates, or enabling the player's visibility), but it does not control the actual video signal being sent to YouTube.
+
+The Button's Role: It prepares your website to show the stream.
+
+The Streaming Software's Role (e.g., OBS): This is what actually sends the video data to the platform.
