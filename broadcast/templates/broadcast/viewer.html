@@ -42,56 +42,9 @@
                    hx-target="#update-container" 
                    hx-swap="innerHTML">
                 
-                <h2>Latest Update</h2>
-                {% if post %}
-                    <article class="post-card">
-                        {% if post.image %}<img src="{{ post.image.url }}" class="post-image">{% endif %}
-                        <h3>{{ post.title }}</h3>
-                        <p>{{ post.content }}</p>
-                        <small style="color: #aaa;">{{ post.created_at|date:"F d, Y" }}</small>
-                    </article>
-
-                    <div class="comment-section">
-                        <h3>Comments</h3>
-                        {% for comment in post.comments.all %}
-                            <div class="comment">
-                                <strong>{{ comment.name }}</strong>: {{ comment.body }}<br>
-                                <small>
-                                    <a href="{% url 'edit_comment' comment.id %}" style="color: var(--accent-gold);">Edit</a> | 
-                                    <a href="{% url 'delete_comment' comment.id %}" onclick="return confirm('Delete this?');" style="color: #ff6b6b;">Delete</a>
-                                </small>
-                            </div>
-                        {% empty %}
-                            <p>No comments yet.</p>
-                        {% endfor %}
-
-                        <form method="POST" style="margin-top: 15px;">
-                            {% csrf_token %}
-                            <input type="text" name="name" placeholder="Your Name" required style="width: 100%; padding: 8px; margin-bottom: 5px;">
-                            <textarea name="body" placeholder="Write a comment..." required style="width: 100%; padding: 8px;"></textarea>
-                            <button type="submit" style="margin-top: 10px; background: var(--accent-gold); border: none; padding: 10px 20px; cursor: pointer; font-weight: bold;">Post Comment</button>
-                        </form>
-                    </div>
-                {% else %}
-                    <p>No new announcements.</p>
-                {% endif %}
+                {% include 'broadcast/partials/post_update.html' %}
             </aside>
         </div>
-
-        <footer style="margin-top: 50px; padding: 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); color: #888;">
-            <p><strong>Developed by Francis Jake G. Aurel</strong> | Age: 24</p>
-            <p><a href="mailto:jakeaurel90@gmail.com" style="color: var(--accent-gold); text-decoration: none;">Contact: jakeaurel90@gmail.com</a></p>
-            <div style="margin-top: 10px; font-size: 0.85em;">
-                <p><strong>About This Website:</strong></p>
-                <p style="max-width: 600px; margin: 0 auto;">
-                    The SCMM Live Media Center is a high-performance, real-time broadcasting hub 
-                    designed to centralize live streams from YouTube, Facebook, and TikTok. 
-                    Built with a dynamic architecture, it features seamless, non-reloading 
-                    updates and an interactive community comment system for real-time engagement.
-                </p>
-            </div>
-            <p style="margin-top: 15px;"><small>© 2026 SCMM Live Media Center</small></p>
-        </footer>
     </div>
 </body>
 </html>
