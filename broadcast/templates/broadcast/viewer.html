@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCMM Live Media Center</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
@@ -29,21 +28,18 @@
                 <div class="stream-box">
                     <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen></iframe>
                 </div>
-                <h3>Other Platforms</h3>
-                <div class="social-links">
-                    <a href="https://www.facebook.com/YOUR_PAGE_URL" target="_blank">▶ Watch on Facebook Live</a>
-                    <a href="https://www.tiktok.com/@YOUR_TIKTOK_HANDLE" target="_blank">▶ Watch on TikTok Live</a>
-                </div>
             </main>
             
             <aside id="update-container">
-                <div id="update-content" 
+                <div id="announcement-content" 
                      hx-get="{% url 'live_viewer' %}" 
                      hx-trigger="every 5s" 
-                     hx-target="#update-content" 
                      hx-swap="innerHTML">
-                     
                      {% include 'broadcast/partials/post_update.html' %}
+                </div>
+
+                <div id="comment-box">
+                     {% include 'broadcast/partials/comment_section.html' %}
                 </div>
             </aside>
         </div>

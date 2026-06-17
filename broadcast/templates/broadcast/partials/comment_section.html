@@ -1,0 +1,17 @@
+<div class="comment-section">
+    <h3>Comments</h3>
+    <div id="comment-list">
+        {% for comment in post.comments.all %}
+            <div class="comment">
+                <strong>{{ comment.name }}</strong>: {{ comment.body }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <form hx-post="{% url 'live_viewer' %}" hx-target="#comment-list" hx-swap="innerHTML" hx-on::after-request="this.reset()">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Your Name" required style="width: 100%; padding: 8px; margin-bottom: 5px;">
+        <textarea name="body" placeholder="Write a comment..." required style="width: 100%; padding: 8px;"></textarea>
+        <button type="submit">Post Comment</button>
+    </form>
+</div>
