@@ -16,15 +16,13 @@ def live_viewer(request):
         if name and body:
             Comment.objects.create(post=latest_post, name=name, body=body)
         
-        # If the request is from HTMX, re-render the partial so it updates 
-        # instantly without a full page refresh/redirect
-        if request.headers.get('HX-Request'):
-            return render(request, 'broadcast/partials/post_update.html', {'post': latest_post})
-            
-        return redirect('live_viewer')
+        # After posting, return only the COMMENT LIST partial
+        # so the form stays visible and the page doesn't jump
+        return render(request, 'broadcast/partials/comment_list.html', {'post': latest_post})
 
-    # Standard HTMX update
-    if request.headers.get('HX-Request'):
+    # Standard HTMX update for the Announcement Polling
+    # Triggered by the 5s interval on #announcement-content
+    if request.headers.get('HX-Trigger') == 'announcement-poll':
         return render(request, 'broadcast/partials/post_update.html', {'post': latest_post})
 
     # Standard Load: Return the full page

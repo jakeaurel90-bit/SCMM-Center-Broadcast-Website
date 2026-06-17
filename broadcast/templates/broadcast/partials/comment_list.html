@@ -1,0 +1,11 @@
+{% for comment in post.comments.all %}
+    <div class="comment">
+        <strong>{{ comment.name }}</strong>: {{ comment.body }}<br>
+        <small>
+            <a href="{% url 'edit_comment' comment.id %}" style="color: var(--accent-gold);">Edit</a> | 
+            <a href="{% url 'delete_comment' comment.id %}" onclick="return confirm('Delete this?');" style="color: #ff6b6b;">Delete</a>
+        </small>
+    </div>
+{% empty %}
+    <p>No comments yet.</p>
+{% endfor %}
