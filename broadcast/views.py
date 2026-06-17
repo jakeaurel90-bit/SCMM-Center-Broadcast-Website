@@ -16,10 +16,26 @@ def live_viewer(request):
         body = request.POST.get('body')
         if name and body:
             Comment.objects.create(post=latest_post, name=name, body=body)
-            # Redirect to avoid form resubmission on refresh
             return redirect('live_viewer')
 
     return render(request, 'broadcast/viewer.html', {'post': latest_post})
+
+def edit_comment(request, comment_id):
+    # Get the specific comment or return 404
+    comment = get_object_or_404(Comment, id=comment_id)
+    
+    if request.method == 'POST':
+        comment.body = request.POST.get('body')
+        comment.save()
+        return redirect('live_viewer')
+        
+    return render(request, 'broadcast/edit_comment.html', {'comment': comment})
+
+def delete_comment(request, comment_id):
+    # Find the comment and remove it
+    comment = get_object_or_404(Comment, id=comment_id)
+    comment.delete()
+    return redirect('live_viewer')
 
 def start_stream(request):
     return JsonResponse({'status': 'Streaming logic triggered'})

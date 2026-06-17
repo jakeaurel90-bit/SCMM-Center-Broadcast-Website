@@ -9,10 +9,12 @@
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark-blue); color: var(--text-light); margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
         .page-wrapper { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-        .stream-box { background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; width: 100%; border: 2px solid var(--accent-gold); margin-bottom: 20px; }
+        .stream-box { background: #000; border-radius: 8px; overflow: hidden; height: 300px; width: 100%; border: 2px solid var(--accent-gold); margin-bottom: 20px; }
         iframe { width: 100%; height: 100%; border: none; }
+        .social-links { margin-bottom: 20px; }
+        .social-links a { display: block; color: var(--accent-gold); text-decoration: none; margin-bottom: 10px; font-weight: bold; }
         .post-card { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 8px; border-left: 4px solid var(--accent-gold); }
-        .post-image { width: 100%; max-height: 300px; object-fit: cover; border-radius: 6px; margin-bottom: 15px; }
+        .post-image { width: 100%; max-height: 300px; object-fit: cover; border-radius: 6px; margin-bottom: 15px; display: block; }
         .comment-section { margin-top: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; }
         .comment { border-bottom: 1px solid #444; padding: 10px 0; }
         @media (max-width: 900px) { .page-wrapper { grid-template-columns: 1fr; } }
@@ -25,6 +27,12 @@
             <main>
                 <div class="stream-box">
                     <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen></iframe>
+                </div>
+                
+                <h3>Other Platforms</h3>
+                <div class="social-links">
+                    <a href="https://www.facebook.com/YOUR_PAGE_URL" target="_blank">▶ Watch on Facebook Live</a>
+                    <a href="https://www.tiktok.com/@YOUR_TIKTOK_HANDLE" target="_blank">▶ Watch on TikTok Live</a>
                 </div>
             </main>
             
@@ -42,7 +50,11 @@
                         <h3>Comments</h3>
                         {% for comment in post.comments.all %}
                             <div class="comment">
-                                <strong>{{ comment.name }}</strong>: {{ comment.body }}
+                                <strong>{{ comment.name }}</strong>: {{ comment.body }}<br>
+                                <small>
+                                    <a href="{% url 'edit_comment' comment.id %}" style="color: var(--accent-gold);">Edit</a> | 
+                                    <a href="{% url 'delete_comment' comment.id %}" onclick="return confirm('Delete this?');" style="color: #ff6b6b;">Delete</a>
+                                </small>
                             </div>
                         {% empty %}
                             <p>No comments yet.</p>
@@ -52,7 +64,7 @@
                             {% csrf_token %}
                             <input type="text" name="name" placeholder="Your Name" required style="width: 100%; padding: 8px; margin-bottom: 5px;">
                             <textarea name="body" placeholder="Write a comment..." required style="width: 100%; padding: 8px;"></textarea>
-                            <button type="submit" style="margin-top: 10px; background: var(--accent-gold); border: none; padding: 10px 20px; cursor: pointer;">Post Comment</button>
+                            <button type="submit" style="margin-top: 10px; background: var(--accent-gold); border: none; padding: 10px 20px; cursor: pointer; font-weight: bold;">Post Comment</button>
                         </form>
                     </div>
                 {% else %}
