@@ -36,13 +36,15 @@
                 </div>
             </main>
             
-            <aside id="update-container" 
-                   hx-get="{% url 'live_viewer' %}" 
-                   hx-trigger="every 5s" 
-                   hx-target="#update-container" 
-                   hx-swap="innerHTML">
-                
-                {% include 'broadcast/partials/post_update.html' %}
+            <aside id="update-container">
+                <div id="update-content" 
+                     hx-get="{% url 'live_viewer' %}" 
+                     hx-trigger="every 5s" 
+                     hx-target="#update-content" 
+                     hx-swap="innerHTML">
+                     
+                     {% include 'broadcast/partials/post_update.html' %}
+                </div>
             </aside>
         </div>
     </div>

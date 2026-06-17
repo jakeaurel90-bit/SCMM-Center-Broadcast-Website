@@ -15,9 +15,15 @@ def live_viewer(request):
         body = request.POST.get('body')
         if name and body:
             Comment.objects.create(post=latest_post, name=name, body=body)
-            return redirect('live_viewer')
+        
+        # If the request is from HTMX, re-render the partial so it updates 
+        # instantly without a full page refresh/redirect
+        if request.headers.get('HX-Request'):
+            return render(request, 'broadcast/partials/post_update.html', {'post': latest_post})
+            
+        return redirect('live_viewer')
 
-    # HTMX Logic: If the request comes from HTMX, return only the partial fragment
+    # Standard HTMX update
     if request.headers.get('HX-Request'):
         return render(request, 'broadcast/partials/post_update.html', {'post': latest_post})
 
