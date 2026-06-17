@@ -1,0 +1,10 @@
+{% if post %}
+    <article class="post-card">
+        {% if post.image %}<img src="{{ post.image.url }}" class="post-image">{% endif %}
+        <h3>{{ post.title }}</h3>
+        <p>{{ post.content }}</p>
+        <small style="color: #aaa;">{{ post.created_at|date:"F d, Y" }}</small>
+    </article>
+    {% else %}
+    <p>No new announcements.</p>
+{% endif %}

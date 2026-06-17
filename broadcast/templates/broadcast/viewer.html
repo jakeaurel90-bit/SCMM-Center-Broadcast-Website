@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCMM Live Media Center</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
         :root { --bg-dark-blue: #0b2545; --accent-gold: #e2b13c; --text-light: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark-blue); color: var(--text-light); margin: 0; padding: 20px; }
@@ -28,7 +29,6 @@
                 <div class="stream-box">
                     <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen></iframe>
                 </div>
-                
                 <h3>Other Platforms</h3>
                 <div class="social-links">
                     <a href="https://www.facebook.com/YOUR_PAGE_URL" target="_blank">▶ Watch on Facebook Live</a>
@@ -36,7 +36,12 @@
                 </div>
             </main>
             
-            <aside>
+            <aside id="update-container" 
+                   hx-get="{% url 'live_viewer' %}" 
+                   hx-trigger="every 5s" 
+                   hx-target="#update-container" 
+                   hx-swap="innerHTML">
+                
                 <h2>Latest Update</h2>
                 {% if post %}
                     <article class="post-card">
