@@ -4,9 +4,9 @@ class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     
-    # The 'storage' argument is omitted so that Django uses 
-    # the 'default' backend defined in the STORAGES dictionary 
-    # in settings.py (Cloudinary).
+    # We keep it simple. When you are ready to switch back to Cloudinary,
+    # you do not need to change this line; the 'default' storage backend 
+    # in settings.py handles the magic.
     image = models.ImageField(
         upload_to='post_images/', 
         blank=True, 
@@ -16,6 +16,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        # This ensures the newest posts appear at the top
         ordering = ['-created_at']
 
     def __str__(self):
