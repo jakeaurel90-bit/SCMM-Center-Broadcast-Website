@@ -4,24 +4,20 @@ const app = express();
 
 app.use(express.static(path.join(__dirname)));
 
-app.get('/', (req, res) => {
+app.get(['/', '/viewer.html', '/live', '/LIVE'], (req, res) => {
     res.sendFile(path.join(__dirname, 'viewer.html'));
 });
 
-app.get('/login.html', (req, res) => {
+app.get(['/login.html', '/login'], (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-app.get('/logout.html', (req, res) => {
+app.get(['/logout.html', '/logout'], (req, res) => {
     res.sendFile(path.join(__dirname, 'logout.html'));
 });
 
-app.get('/index.html', (req, res) => {
+app.get(['/index.html', '/admin'], (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.get('/viewer.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'viewer.html'));
 });
 
 const PORT = process.env.PORT || 3000;
