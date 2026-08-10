@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCMM Media Center Broadcast Dashboard</title>
-    <!-- Firebase SDKs for real-time online multi-device cloud synchronization -->
+    <!-- Firebase SDKs: app core, Firestore (posts), Auth (real login), Storage (photo/video uploads) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <style>
         :root {
             --bg-dark-blue: #0b2545;
@@ -383,8 +385,21 @@
             transition: transform 0.1s ease;
         }
 
-        .post-creation-panel button:hover {
+        .post-creation-panel button:hover:not(:disabled) {
             transform: translateY(-1px);
+        }
+
+        .post-creation-panel button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .upload-progress-text {
+            color: var(--text-muted);
+            font-size: 11px;
+            text-align: center;
+            margin-top: 8px;
+            min-height: 14px;
         }
 
         .scripture-display-rack {
@@ -469,7 +484,6 @@
             line-height: 1.5;
         }
 
-        /* Rendered media & Facebook embeds */
         .post-media-container {
             margin-top: 12px;
             border-radius: 8px;
@@ -601,7 +615,7 @@
             </svg>
             <h2>SCMM Media Login</h2>
             <p>Broadcast Control Center</p>
-            <input type="text" id="username" placeholder="Username" autocomplete="off">
+            <input type="email" id="username" placeholder="Email" autocomplete="off">
             <input type="password" id="password" placeholder="Password" autocomplete="off">
             <div class="login-error" id="login-error"></div>
             <button id="loginBtn" onclick="evaluateAccessAuthentication()">Sign In</button>
@@ -646,12 +660,11 @@
                         <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
                     </div>
 
-                    <!-- MULTIMEDIA POST CREATION PANEL -->
                     <div class="post-creation-panel">
                         <h3>+ Create Multimedia Broadcast Post</h3>
                         <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
                         <textarea id="new-post-content" placeholder="Write announcement details or paste Facebook video/live link here..."></textarea>
-                        
+
                         <div class="media-upload-row">
                             <label for="media-file-input">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -663,10 +676,10 @@
                             <span id="file-name-display">No file selected</span>
                         </div>
 
-                        <button onclick="createNewDashboardPost()">Publish Post</button>
+                        <button id="publishBtn" onclick="createNewDashboardPost()">Publish Post</button>
+                        <div class="upload-progress-text" id="upload-progress-text"></div>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER WITH PERMANENT CLOUD STORAGE -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -723,7 +736,12 @@
     </div>
 
     <script>
-        // Initialize Firebase (Replace these keys with your free Firebase project credentials)
+        // =====================================================================
+        // FIREBASE CONFIG - paste your REAL project config here.
+        // Get it from: Firebase Console -> Project Settings -> General ->
+        // "Your apps" -> Web app -> SDK setup and configuration -> Config
+        // This EXACT SAME block must also be pasted into viewer.html.
+        // =====================================================================
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -737,10 +755,13 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
 
         let chronologicalTimeEngineId = null;
-        let selectedMediaFileBase64 = null;
+        let selectedMediaFile = null; // raw File object - uploaded to Storage, not base64-encoded
         let selectedMediaType = null;
+        let postsUnsubscribe = null;
 
         const biblicalVersesArray = [
             { ref: "Philippians 4:13", text: "I can do all things through Christ who strengthens me." },
@@ -772,46 +793,65 @@
             chronologicalTimeEngineId = setInterval(constructChronometerTicks, 1000);
         }
 
+        // ---------- Real Firebase Authentication ----------
+
         async function evaluateAccessAuthentication() {
-            const userInboundInput = document.getElementById('username').value.trim();
-            const passInboundInput = document.getElementById('password').value;
+            const emailInput = document.getElementById('username').value.trim();
+            const passInput = document.getElementById('password').value;
             const errorEl = document.getElementById('login-error');
             const btn = document.getElementById('loginBtn');
-            
+
             errorEl.innerText = '';
 
-            if (!userInboundInput || !passInboundInput) {
-                errorEl.innerText = 'Please enter both username and password.';
+            if (!emailInput || !passInput) {
+                errorEl.innerText = 'Please enter both email and password.';
                 return;
             }
 
             btn.disabled = true;
-
-            setTimeout(() => {
-                enterDashboard(userInboundInput);
+            try {
+                await auth.signInWithEmailAndPassword(emailInput, passInput);
+                // onAuthStateChanged (below) handles showing the dashboard.
+            } catch (e) {
+                errorEl.innerText = 'Invalid email or password.';
+                console.error('Login failed:', e.code, e.message);
+            } finally {
                 btn.disabled = false;
-            }, 300);
+            }
         }
 
-        function enterDashboard(username = 'Operator') {
-            const authScreen = document.getElementById('auth-screen');
-            const dashboard = document.getElementById('dashboard');
-            
-            if (authScreen) authScreen.style.display = 'none';
-            if (dashboard) dashboard.style.display = 'flex';
-            
-            document.getElementById('operator-name').innerText = username || 'Operator';
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                enterDashboard(user.email);
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('dashboard').style.display = 'none';
+                if (postsUnsubscribe) { postsUnsubscribe(); postsUnsubscribe = null; }
+                clearInterval(chronologicalTimeEngineId);
+            }
+        });
+
+        function enterDashboard(email) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'flex';
+            document.getElementById('operator-name').innerText = email || 'Operator';
             initializeChronologicalTimeEngine();
             selectRandomBiblicalScriptureAsset();
             listenToCloudPostsAdmin();
         }
+
+        async function executeInterfaceSessionTermination() {
+            await auth.signOut();
+        }
+
+        // ---------- Media selection (kept as a File object, not base64) ----------
 
         function handleFileSelection(event) {
             const file = event.target.files[0];
             const nameDisplay = document.getElementById('file-name-display');
 
             if (!file) {
-                selectedMediaFileBase64 = null;
+                selectedMediaFile = null;
                 selectedMediaType = null;
                 nameDisplay.innerText = 'No file selected';
                 return;
@@ -819,56 +859,96 @@
 
             nameDisplay.innerText = file.name;
             selectedMediaType = file.type.startsWith('video') ? 'video' : 'image';
-
-            const reader = new FileReader();
-            reader.onload = function(uploadEvent) {
-                selectedMediaFileBase64 = uploadEvent.target.result;
-            };
-            reader.readAsDataURL(file);
+            selectedMediaFile = file;
         }
 
-        // Publish post permanently to Cloud Firestore database
-        function createNewDashboardPost() {
+        // ---------- Publish post: upload media to Storage first, then write Firestore doc ----------
+
+        async function createNewDashboardPost() {
             const titleInput = document.getElementById('new-post-title');
             const contentInput = document.getElementById('new-post-content');
             const nameDisplay = document.getElementById('file-name-display');
-            
+            const publishBtn = document.getElementById('publishBtn');
+            const progressText = document.getElementById('upload-progress-text');
+
             const title = titleInput.value.trim();
             const content = contentInput.value.trim();
 
-            if (!title && !content && !selectedMediaFileBase64) {
+            if (!title && !content && !selectedMediaFile) {
                 alert('Please provide text, a Facebook link, or attach a media file to publish.');
                 return;
             }
 
-            db.collection("broadcast_posts").add({
-                title: title || 'Broadcast Announcement',
-                content: content,
-                mediaData: selectedMediaFileBase64,
-                mediaType: selectedMediaType,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-            }).then(() => {
+            publishBtn.disabled = true;
+
+            try {
+                let mediaUrl = null;
+                let mediaType = selectedMediaType;
+
+                if (selectedMediaFile) {
+                    progressText.innerText = 'Uploading media...';
+                    const safeName = Date.now() + '_' + selectedMediaFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const fileRef = storage.ref('broadcast-media/' + safeName);
+                    const uploadTask = fileRef.put(selectedMediaFile);
+
+                    await new Promise((resolve, reject) => {
+                        uploadTask.on('state_changed',
+                            (snapshot) => {
+                                const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                                progressText.innerText = `Uploading media... ${pct}%`;
+                            },
+                            (err) => reject(err),
+                            () => resolve()
+                        );
+                    });
+
+                    mediaUrl = await uploadTask.snapshot.ref.getDownloadURL();
+                }
+
+                progressText.innerText = 'Publishing post...';
+
+                await db.collection("broadcast_posts").add({
+                    title: title || 'Broadcast Announcement',
+                    content: content,
+                    mediaUrl: mediaUrl,
+                    mediaType: mediaUrl ? mediaType : null,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                });
+
                 titleInput.value = '';
                 contentInput.value = '';
                 document.getElementById('media-file-input').value = '';
-                selectedMediaFileBase64 = null;
+                selectedMediaFile = null;
                 selectedMediaType = null;
                 nameDisplay.innerText = 'No file selected';
-            }).catch((error) => {
-                console.error("Error adding post to cloud: ", error);
-                alert("Failed to publish post online. Check your cloud configuration.");
-            });
+                progressText.innerText = '';
+            } catch (error) {
+                console.error("Error publishing post: ", error);
+                alert("Failed to publish post: " + error.message);
+                progressText.innerText = '';
+            } finally {
+                publishBtn.disabled = false;
+            }
         }
 
-        // Delete post from cloud database permanently
-        function deleteDashboardPost(postId) {
-            db.collection("broadcast_posts").doc(postId).delete().catch((error) => {
+        // Delete post + its uploaded media file (if any)
+        async function deleteDashboardPost(postId, mediaUrl) {
+            if (!confirm('Delete this post?')) return;
+            try {
+                await db.collection("broadcast_posts").doc(postId).delete();
+                if (mediaUrl) {
+                    try {
+                        await storage.refFromURL(mediaUrl).delete();
+                    } catch (e) {
+                        console.warn('Could not delete media file (may already be gone):', e.message);
+                    }
+                }
+            } catch (error) {
                 console.error("Error removing post: ", error);
-            });
+            }
         }
 
-        // Helper function to detect and generate Facebook video/live iframe embeds
         function extractAndEmbedFacebookVideo(text) {
             if (!text) return '';
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
@@ -878,22 +958,20 @@
                 const fbUrl = encodeURIComponent(cleanUrl);
                 return `
                     <div class="post-media-container" style="height: 315px; margin-top: 12px;">
-                        <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                        <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                     </div>
                 `;
             }
             return '';
         }
 
-        // Real-time Cloud Firestore Listener for Admin Dashboard
         function listenToCloudPostsAdmin() {
-            db.collection("broadcast_posts").orderBy("createdAt", "desc")
+            postsUnsubscribe = db.collection("broadcast_posts").orderBy("createdAt", "desc")
               .onSnapshot((snapshot) => {
                   let posts = [];
                   snapshot.forEach((doc) => {
                       posts.push({ id: doc.id, ...doc.data() });
                   });
-                  
                   renderStoredPosts(posts);
               }, (error) => {
                   console.error("Cloud synchronization error:", error);
@@ -929,9 +1007,8 @@
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-post-btn';
                 deleteBtn.textContent = 'Delete';
-                
                 deleteBtn.addEventListener('click', function() {
-                    deleteDashboardPost(post.id);
+                    deleteDashboardPost(post.id, post.mediaUrl);
                 });
 
                 header.appendChild(titleSpan);
@@ -947,26 +1024,24 @@
                     card.appendChild(body);
                 }
 
-                // Check for attached media file (photo/video)
-                if (post.mediaData) {
+                if (post.mediaUrl) {
                     const mediaContainer = document.createElement('div');
                     mediaContainer.className = 'post-media-container';
 
                     if (post.mediaType === 'video') {
                         const videoEl = document.createElement('video');
                         videoEl.controls = true;
-                        videoEl.src = post.mediaData;
+                        videoEl.src = post.mediaUrl;
                         mediaContainer.appendChild(videoEl);
                     } else {
                         const imgEl = document.createElement('img');
-                        imgEl.src = post.mediaData;
+                        imgEl.src = post.mediaUrl;
                         imgEl.alt = 'Broadcast attachment';
                         mediaContainer.appendChild(imgEl);
                     }
                     card.appendChild(mediaContainer);
                 }
 
-                // Check if content or title has a Facebook Live / video link
                 const fbEmbedHtml = extractAndEmbedFacebookVideo((post.content || "") + " " + (post.title || ""));
                 if (fbEmbedHtml) {
                     const fbContainer = document.createElement('div');
@@ -984,12 +1059,6 @@
 
                 container.appendChild(card);
             });
-        }
-
-        async function executeInterfaceSessionTermination() {
-            clearInterval(chronologicalTimeEngineId);
-            try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
-            location.reload();
         }
 
         function selectRandomBiblicalScriptureAsset() {
