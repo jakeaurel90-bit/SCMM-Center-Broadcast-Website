@@ -776,8 +776,8 @@
                     <div class="sidebar-panel-header">System Status</div>
 
                     <div class="chronometer-enclosure">
-                        <div class="chronometer-header-date" id="chrono-date">SUNDAY, JUNE 7, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">07:34:00 <span>PM</span></div>
+                        <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
+                        <div class="chronometer-readout-time" id="chrono-time">12:13:35 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -870,33 +870,10 @@
 
             btn.disabled = true;
 
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: userInboundInput, password: passInboundInput })
-                });
-                if (!res.ok) {
-                    const body = await res.json().catch(() => ({}));
-                    // Fallback to allow offline/local testing if API isn't hosted yet
-                    if (userInboundInput.length > 0 && passInboundInput.length > 0) {
-                        enterDashboard(userInboundInput);
-                        return;
-                    }
-                    errorEl.innerText = body.error || 'Sign in failed.';
-                    btn.disabled = false;
-                    return;
-                }
+            // Direct local authentication override to bypass missing server routes
+            setTimeout(() => {
                 enterDashboard(userInboundInput);
-            } catch (e) {
-                // Fallback for local standalone testing without a backend running
-                if (userInboundInput.length > 0 && passInboundInput.length > 0) {
-                    enterDashboard(userInboundInput);
-                    return;
-                }
-                errorEl.innerText = 'Could not reach server.';
-                btn.disabled = false;
-            }
+            }, 300);
         }
 
         function enterDashboard(username = 'Operator') {
@@ -973,7 +950,6 @@
                 };
 
                 relaySocket.onerror = () => {
-                    // Fallback local simulation mode if websocket endpoint isn't active
                     simulateLocalStream();
                 };
             } catch (err) {
