@@ -280,7 +280,7 @@
             max-width: 400px;
         }
 
-        /* --- PROMINENT ADD POST FORM SECTION --- */
+        /* --- MULTIMEDIA POST CREATION PANEL --- */
         .post-creation-panel {
             background-color: var(--panel-blue);
             border-radius: 12px;
@@ -304,7 +304,7 @@
         .post-creation-panel textarea {
             width: 100%;
             padding: 12px 16px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 6px;
@@ -327,10 +327,45 @@
 
         .post-creation-panel textarea {
             resize: vertical;
-            height: 90px;
+            height: 80px;
+        }
+
+        .media-upload-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: rgba(0,0,0,0.15);
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .media-upload-row label {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .media-upload-row input[type="file"] {
+            display: none;
+        }
+
+        #file-name-display {
+            color: var(--accent-gold);
+            font-size: 11px;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .post-creation-panel button {
+            width: 100%;
             background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
             color: #111;
             padding: 12px 24px;
@@ -384,6 +419,25 @@
             font-size: 13.5px;
             color: #444;
             line-height: 1.5;
+        }
+
+        /* Rendered media in posts */
+        .post-media-container {
+            margin-top: 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            max-height: 350px;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .post-media-container img,
+        .post-media-container video {
+            width: 100%;
+            max-height: 350px;
+            object-fit: contain;
         }
 
         .broadcast-console-module {
@@ -753,12 +807,24 @@
                         <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
                     </div>
 
-                    <!-- PROMINENT ADD POST PANEL -->
+                    <!-- MULTIMEDIA POST CREATION PANEL -->
                     <div class="post-creation-panel">
-                        <h3>+ Create New Broadcast Announcement</h3>
-                        <input type="text" id="new-post-title" placeholder="Announcement Title (e.g., Sabbath Worship Schedule)..." autocomplete="off">
-                        <textarea id="new-post-content" placeholder="Type your broadcast announcement details here..."></textarea>
-                        <button onclick="createNewDashboardPost()">Publish Announcement</button>
+                        <h3>+ Create Multimedia Broadcast Post</h3>
+                        <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
+                        <textarea id="new-post-content" placeholder="Write broadcast message details here..."></textarea>
+                        
+                        <div class="media-upload-row">
+                            <label for="media-file-input">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                                </svg>
+                                Attach Photo / Video
+                            </label>
+                            <input type="file" id="media-file-input" accept="image/*,video/*" onchange="handleFileSelection(event)">
+                            <span id="file-name-display">No file selected</span>
+                        </div>
+
+                        <button onclick="createNewDashboardPost()">Publish Post with Media</button>
                     </div>
 
                     <!-- LIVE POST FEED CONTAINER -->
@@ -857,7 +923,7 @@
 
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">12:21:26 <span>PM</span></div>
+                        <div class="chronometer-readout-time" id="chrono-time">12:29:53 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -896,6 +962,8 @@
         let hardwareVideoMediaStreamTrack = null;
         let mediaRecorderInstance = null;
         let relaySocket = null;
+        let selectedMediaFileBase64 = null;
+        let selectedMediaType = null;
 
         const biblicalVersesArray = [
             { ref: "Philippians 4:13", text: "I can do all things through Christ who strengthens me." },
@@ -965,21 +1033,45 @@
             renderStoredPosts();
         }
 
+        function handleFileSelection(event) {
+            const file = event.target.files[0];
+            const nameDisplay = document.getElementById('file-name-display');
+
+            if (!file) {
+                selectedMediaFileBase64 = null;
+                selectedMediaType = null;
+                nameDisplay.innerText = 'No file selected';
+                return;
+            }
+
+            nameDisplay.innerText = file.name;
+            selectedMediaType = file.type.startsWith('video') ? 'video' : 'image';
+
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                selectedMediaFileBase64 = uploadEvent.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         function createNewDashboardPost() {
             const titleInput = document.getElementById('new-post-title');
             const contentInput = document.getElementById('new-post-content');
+            const nameDisplay = document.getElementById('file-name-display');
             
             const title = titleInput.value.trim();
             const content = contentInput.value.trim();
 
-            if (!title || !content) {
-                alert('Please enter both a title and content for the announcement.');
+            if (!title && !content && !selectedMediaFileBase64) {
+                alert('Please provide text or attach a photo/video to publish.');
                 return;
             }
 
             const newPost = {
-                title: title,
+                title: title || 'Broadcast Media Attachment',
                 content: content,
+                mediaData: selectedMediaFileBase64,
+                mediaType: selectedMediaType,
                 date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
             };
 
@@ -987,8 +1079,14 @@
             existingPosts.unshift(newPost);
             localStorage.setItem('scmm_dashboard_posts', JSON.stringify(existingPosts));
 
+            // Reset inputs
             titleInput.value = '';
             contentInput.value = '';
+            document.getElementById('media-file-input').value = '';
+            selectedMediaFileBase64 = null;
+            selectedMediaType = null;
+            nameDisplay.innerText = 'No file selected';
+
             renderStoredPosts();
         }
 
@@ -999,24 +1097,45 @@
             if (posts.length === 0) {
                 container.innerHTML = `
                     <div class="scripture-card" style="margin-bottom: 15px;">
-                        <div class="scripture-body" style="color: #666;">No active broadcast announcements. Use the panel above to publish one.</div>
+                        <div class="scripture-body" style="color: #666;">No active announcements. Use the panel above to publish text, photos, or videos.</div>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = posts.map(post => `
-                <div class="scripture-card" style="margin-bottom: 15px; border-left: 5px solid #e2b13c;">
-                    <div class="scripture-card-header">${escapeHtml(post.title)}</div>
-                    <div class="scripture-body" style="color: #333; margin-top: 5px;">${escapeHtml(post.content)}</div>
-                    <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">
-                        Published: ${post.date}
+            container.innerHTML = posts.map(post => {
+                let mediaHtml = '';
+                if (post.mediaData) {
+                    if (post.mediaType === 'video') {
+                        mediaHtml = `
+                            <div class="post-media-container">
+                                <video controls src="${post.mediaData}"></video>
+                            </div>
+                        `;
+                    } else {
+                        mediaHtml = `
+                            <div class="post-media-container">
+                                <img src="${post.mediaData}" alt="Broadcast attachment">
+                            </div>
+                        `;
+                    }
+                }
+
+                return `
+                    <div class="scripture-card" style="margin-bottom: 15px; border-left: 5px solid #e2b13c;">
+                        <div class="scripture-card-header">${escapeHtml(post.title)}</div>
+                        ${post.content ? `<div class="scripture-body" style="color: #333; margin-top: 5px;">${escapeHtml(post.content)}</div>` : ''}
+                        ${mediaHtml}
+                        <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">
+                            Published: ${post.date}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function escapeHtml(text) {
+            if (!text) return '';
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text.replace(/[&<>"']/g, m => map[m]);
         }
