@@ -176,8 +176,11 @@
                     let posts = Array.isArray(data) ? data : (data.posts || []);
                     renderViewerPosts(posts);
                     localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
+                } else {
+                    throw new Error("Cloud fetch failed");
                 }
             } catch (e) {
+                // Fallback to local storage backup if cloud lookup is restricted
                 let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
                 renderViewerPosts(local);
             }
@@ -246,7 +249,7 @@
         window.onload = function() {
             initializeChronologicalTimeEngine();
             loadViewerPosts();
-            setInterval(loadViewerPosts, 2000);
+            setInterval(loadViewerPosts, 2000); // Continuous polling for all viewers worldwide
         };
     </script>
 </body>
