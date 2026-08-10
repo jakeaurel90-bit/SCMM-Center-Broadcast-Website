@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCMM Media Center Broadcast Dashboard</title>
-    <!-- Firebase SDKs: app core, Firestore (posts), Auth (real login), Storage (photo/video uploads) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <style>
         :root {
             --bg-dark-blue: #0b2545;
@@ -19,611 +14,53 @@
             --text-muted: #8da9c4;
             --danger-red: #8b2635;
             --danger-red-hover: #a32c3f;
-            --success-green: #00b4d8;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            background-color: #f0f4f8;
-            color: #333;
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* --- AUTH LAYER --- */
-        #auth-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--bg-dark-blue) 0%, var(--panel-blue) 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.3s ease;
-        }
-
-        .login-box {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 12px;
-            width: 360px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-
-        .login-logo {
-            width: 70px;
-            margin-bottom: 15px;
-        }
-
-        .login-box h2 {
-            color: var(--text-light);
-            font-size: 20px;
-            margin-bottom: 5px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .login-box p {
-            color: var(--accent-gold);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 25px;
-        }
-
-        .login-box input {
-            width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            color: white;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .login-box input::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-
-        .login-box input:focus {
-            border-color: var(--accent-gold);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .login-box button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
-            border: none;
-            border-radius: 6px;
-            color: #222;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(196,148,41,0.3);
-            transition: all 0.2s ease;
-        }
-
-        .login-box button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 15px rgba(196,148,41,0.4);
-        }
-
-        .login-box button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .login-error {
-            color: #ff8fa3;
-            font-size: 12px;
-            margin-top: -8px;
-            margin-bottom: 12px;
-            min-height: 14px;
-        }
-
-        /* --- MAIN APPLICATION INTERFACE --- */
-        #dashboard {
-            display: none;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .sidebar-brand {
-            width: 140px;
-            background-color: var(--bg-dark-blue);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 30px;
-            border-right: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .brand-logo {
-            width: 70px;
-            height: auto;
-            margin-bottom: 10px;
-        }
-
-        .brand-text {
-            color: var(--text-light);
-            font-weight: bold;
-            font-size: 18px;
-            letter-spacing: 1px;
-        }
-
-        .main-workspace {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: #0d2c54;
-            overflow-y: auto;
-        }
-
-        header {
-            background-color: var(--bg-dark-blue);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .header-title-set {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .header-emblem {
-            width: 32px;
-            height: 32px;
-        }
-
-        .header-titles h2 {
-            color: var(--text-muted);
-            font-size: 11px;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-
-        .header-titles h1 {
-            color: var(--text-light);
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .header-user-actions {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .user-greeting {
-            color: var(--text-light);
-            font-size: 14px;
-        }
-
-        .user-greeting span {
-            color: var(--text-muted);
-        }
-
-        .logout-action-btn {
-            background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
-            color: #111;
-            padding: 8px 18px;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .dashboard-grid {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 20px;
-            flex: 1;
-        }
-
-        .left-column-group {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .theme-banner {
-            background: linear-gradient(rgba(11, 37, 69, 0.4), rgba(11, 37, 69, 0.7)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover;
-            border-radius: 12px;
-            height: 180px;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            border: 1px solid rgba(255,255,255,0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .theme-tag {
-            color: var(--accent-gold);
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .theme-title {
-            color: var(--text-light);
-            font-size: 24px;
-            font-weight: 800;
-            line-height: 1.2;
-            letter-spacing: 0.5px;
-            max-width: 400px;
-        }
-
-        /* --- MULTIMEDIA POST CREATION PANEL --- */
-        .post-creation-panel {
-            background-color: var(--panel-blue);
-            border-radius: 12px;
-            padding: 25px;
-            border: 2px solid var(--accent-gold);
-            box-shadow: 0 4px 20px rgba(226, 177, 60, 0.15);
-        }
-
-        .post-creation-panel h3 {
-            color: var(--accent-gold);
-            font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .post-creation-panel input,
-        .post-creation-panel textarea {
-            width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            color: white;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .post-creation-panel input:focus,
-        .post-creation-panel textarea:focus {
-            border-color: var(--accent-gold);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .post-creation-panel input::placeholder,
-        .post-creation-panel textarea::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-
-        .post-creation-panel textarea {
-            resize: vertical;
-            height: 80px;
-        }
-
-        .media-upload-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            background: rgba(0,0,0,0.15);
-            padding: 10px 14px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .media-upload-row label {
-            color: var(--text-muted);
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .media-upload-row input[type="file"] {
-            display: none;
-        }
-
-        #file-name-display {
-            color: var(--accent-gold);
-            font-size: 11px;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .post-creation-panel button {
-            width: 100%;
-            background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
-            color: #111;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 10px rgba(196,148,41,0.3);
-            transition: transform 0.1s ease;
-        }
-
-        .post-creation-panel button:hover:not(:disabled) {
-            transform: translateY(-1px);
-        }
-
-        .post-creation-panel button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .upload-progress-text {
-            color: var(--text-muted);
-            font-size: 11px;
-            text-align: center;
-            margin-top: 8px;
-            min-height: 14px;
-        }
-
-        .scripture-display-rack {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .scripture-card {
-            background-color: var(--text-light);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-        }
-
-        .announcement-card {
-            background-color: var(--text-light);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            margin-bottom: 15px;
-            border-left: 5px solid #e2b13c;
-        }
-
-        .announcement-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-        }
-
-        .announcement-title {
-            font-size: 15px;
-            font-weight: bold;
-            color: var(--bg-dark-blue);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .delete-post-btn {
-            background-color: var(--danger-red);
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            z-index: 10;
-            position: relative;
-        }
-
-        .delete-post-btn:hover {
-            background-color: var(--danger-red-hover);
-        }
-
-        .scripture-card-header {
-            font-size: 11px;
-            font-weight: bold;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 6px;
-        }
-
-        .scripture-reference {
-            font-size: 15px;
-            font-weight: bold;
-            color: var(--bg-dark-blue);
-            margin-bottom: 4px;
-        }
-
-        .scripture-body {
-            font-size: 13.5px;
-            color: #444;
-            line-height: 1.5;
-        }
-
-        .post-media-container {
-            margin-top: 12px;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .post-media-container img,
-        .post-media-container video {
-            width: 100%;
-            max-height: 350px;
-            object-fit: contain;
-        }
-
-        .system-status-sidebar {
-            background-color: var(--panel-blue);
-            border-left: 1px solid rgba(255,255,255,0.05);
-            padding: 25px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .sidebar-panel-header {
-            color: var(--text-light);
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            padding-bottom: 12px;
-        }
-
-        .chronometer-enclosure {
-            border: 2px solid var(--accent-gold);
-            border-radius: 10px;
-            padding: 15px;
-            background: radial-gradient(circle at center, #112a4d 0%, #091930 100%);
-            text-align: center;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
-            position: relative;
-        }
-
-        .chronometer-header-date {
-            color: var(--accent-gold);
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 8px;
-        }
-
-        .chronometer-readout-time {
-            color: var(--text-light);
-            font-size: 28px;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.2);
-        }
-
-        .chronometer-readout-time span {
-            font-size: 16px;
-            margin-left: 4px;
-            color: var(--text-muted);
-        }
-
-        .chronometer-footer-location {
-            color: var(--text-muted);
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 8px;
-            font-weight: bold;
-        }
-
-        .health-mon-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .health-mon-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: rgba(0,0,0,0.15);
-            padding: 12px 15px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.02);
-        }
-
-        .health-mon-label-set {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-light);
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .health-mon-label-set svg {
-            color: var(--text-muted);
-        }
-
-        .health-mon-status-value {
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
-
-        .status-positive { color: #00f5d4; }
-        .status-nominal { color: #4cc9f0; }
-        .status-negative { color: #ff6b81; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d2c54; color: #333; display: flex; min-height: 100vh; }
+        #dashboard { display: flex; width: 100%; min-height: 100vh; }
+        .sidebar-brand { width: 140px; background-color: var(--bg-dark-blue); display: flex; flex-direction: column; align-items: center; padding-top: 30px; border-right: 1px solid rgba(255,255,255,0.05); position: fixed; height: 100vh; }
+        .brand-logo { width: 70px; height: auto; margin-bottom: 10px; }
+        .brand-text { color: var(--text-light); font-weight: bold; font-size: 18px; letter-spacing: 1px; }
+        .main-workspace { margin-left: 140px; flex: 1; display: flex; flex-direction: column; background-color: #0d2c54; min-height: 100vh; }
+        header { background-color: var(--bg-dark-blue); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255, 255, 255, 0.05); }
+        .header-title-set { display: flex; align-items: center; gap: 15px; }
+        .header-emblem { width: 32px; height: 32px; }
+        .header-titles h2 { color: var(--text-muted); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
+        .header-titles h1 { color: var(--text-light); font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
+        .header-user-actions { display: flex; align-items: center; gap: 20px; }
+        .user-greeting { color: var(--text-light); font-size: 14px; }
+        .user-greeting span { color: var(--accent-gold); font-weight: bold; }
+        .dashboard-grid { padding: 20px; display: grid; grid-template-columns: 1fr 340px; gap: 20px; flex: 1; }
+        .left-column-group { display: flex; flex-direction: column; gap: 20px; }
+        .theme-banner { background: linear-gradient(rgba(11, 37, 69, 0.4), rgba(11, 37, 69, 0.7)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover; border-radius: 12px; height: 180px; padding: 30px; display: flex; flex-direction: column; justify-content: flex-end; border: 1px solid rgba(255,255,255,0.1); }
+        .theme-tag { color: var(--accent-gold); font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+        .theme-title { color: var(--text-light); font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: 0.5px; }
+        .post-creation-panel { background-color: var(--panel-blue); border-radius: 12px; padding: 25px; border: 2px solid var(--accent-gold); box-shadow: 0 4px 20px rgba(226, 177, 60, 0.15); }
+        .post-creation-panel h3 { color: var(--accent-gold); font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 15px; }
+        .post-creation-panel input, .post-creation-panel textarea { width: 100%; padding: 12px 16px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: white; font-size: 14px; outline: none; }
+        .post-creation-panel textarea { resize: vertical; height: 80px; }
+        .post-creation-panel button { width: 100%; background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%); color: #111; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .announcement-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-bottom: 15px; border-left: 5px solid #e2b13c; }
+        .announcement-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
+        .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
+        .delete-post-btn { background-color: var(--danger-red); color: white; border: none; padding: 6px 14px; font-size: 11px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
+        .scripture-display-rack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .scripture-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .scripture-card-header { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+        .scripture-reference { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); margin-bottom: 4px; }
+        .scripture-body { font-size: 13.5px; color: #444; line-height: 1.5; }
+        .system-status-sidebar { background-color: var(--panel-blue); border-left: 1px solid rgba(255,255,255,0.05); padding: 25px 20px; display: flex; flex-direction: column; gap: 25px; }
+        .sidebar-panel-header { color: var(--text-light); font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
+        .chronometer-enclosure { border: 2px solid var(--accent-gold); border-radius: 10px; padding: 15px; background: radial-gradient(circle at center, #112a4d 0%, #091930 100%); text-align: center; }
+        .chronometer-header-date { color: var(--accent-gold); font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+        .chronometer-readout-time { color: var(--text-light); font-size: 28px; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+        .chronometer-readout-time span { font-size: 16px; color: var(--text-muted); }
+        .chronometer-footer-location { color: var(--text-muted); font-size: 9px; text-transform: uppercase; margin-top: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen">
-        <div class="login-box">
-            <svg class="login-logo" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-            <h2>SCMM Media Login</h2>
-            <p>Broadcast Control Center</p>
-            <input type="email" id="username" placeholder="Email" autocomplete="off">
-            <input type="password" id="password" placeholder="Password" autocomplete="off">
-            <div class="login-error" id="login-error"></div>
-            <button id="loginBtn" onclick="evaluateAccessAuthentication()">Sign In</button>
-        </div>
-    </div>
-
     <div id="dashboard">
-
         <aside class="sidebar-brand">
             <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="1.5">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
@@ -632,7 +69,6 @@
         </aside>
 
         <div class="main-workspace">
-
             <header>
                 <div class="header-title-set">
                     <svg class="header-emblem" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="2">
@@ -646,47 +82,33 @@
                     </div>
                 </div>
                 <div class="header-user-actions">
-                    <div class="user-greeting">Hi, <span id="operator-name">Operator</span></div>
-                    <button class="logout-action-btn" onclick="executeInterfaceSessionTermination()">Logout</button>
+                    <div class="user-greeting">Cloud Mode: <span>Connected Online</span></div>
                 </div>
             </header>
 
             <div class="dashboard-grid">
-
                 <div class="left-column-group">
-
                     <div class="theme-banner">
                         <div class="theme-tag">This Month's Theme:</div>
                         <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
                     </div>
 
                     <div class="post-creation-panel">
-                        <h3>+ Create Multimedia Broadcast Post</h3>
+                        <h3>+ Create Online Broadcast Post</h3>
                         <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
-                        <textarea id="new-post-content" placeholder="Write announcement details or paste Facebook video/live link here..."></textarea>
-
-                        <div class="media-upload-row">
-                            <label for="media-file-input">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                                </svg>
-                                Attach Photo / Video File
-                            </label>
-                            <input type="file" id="media-file-input" accept="image/*,video/*" onchange="handleFileSelection(event)">
-                            <span id="file-name-display">No file selected</span>
-                        </div>
-
-                        <button id="publishBtn" onclick="createNewDashboardPost()">Publish Post</button>
-                        <div class="upload-progress-text" id="upload-progress-text"></div>
+                        <textarea id="new-post-content" placeholder="Write details or paste Facebook video link here..."></textarea>
+                        <button id="publishBtn" onclick="publishOnlinePost()">Publish to Cloud</button>
                     </div>
 
-                    <div id="posts-container"></div>
+                    <div id="posts-container">
+                        <div class="announcement-card"><div class="scripture-body" style="color: #666;">Connecting to cloud sync...</div></div>
+                    </div>
 
                     <div class="scripture-display-rack">
                         <div class="scripture-card">
                             <div class="scripture-card-header">Daily Memory Verse</div>
-                            <div class="scripture-reference" id="mv-ref">Philippians 4:13</div>
-                            <div class="scripture-body" id="mv-body">"I can do all things through Christ who strengthens me."</div>
+                            <div class="scripture-reference">Philippians 4:13</div>
+                            <div class="scripture-body">"I can do all things through Christ who strengthens me."</div>
                         </div>
                         <div class="scripture-card">
                             <div class="scripture-card-header">Sabbath Focus Devotional Quote</div>
@@ -694,393 +116,119 @@
                             <div class="scripture-body">"Commit your actions to the Lord, and your plans will succeed."</div>
                         </div>
                     </div>
-
                 </div>
 
                 <aside class="system-status-sidebar">
                     <div class="sidebar-panel-header">System Status</div>
-
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
                         <div class="chronometer-readout-time" id="chrono-time">1:05:16 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
-
-                    <div class="health-mon-stack">
-                        <div class="health-mon-row">
-                            <div class="health-mon-label-set">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.94 0M12 20h.01"/></svg>
-                                Network Status:
-                            </div>
-                            <div class="health-mon-status-value status-positive">OK</div>
-                        </div>
-                        <div class="health-mon-row">
-                            <div class="health-mon-label-set">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-                                Server Load:
-                            </div>
-                            <div class="health-mon-status-value status-nominal">LOW</div>
-                        </div>
-                        <div class="health-mon-row">
-                            <div class="health-mon-label-set">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-                                API Integrations:
-                            </div>
-                            <div class="health-mon-status-value status-positive" id="status-relay">ONLINE</div>
-                        </div>
-                    </div>
-
                 </aside>
             </div>
+            
+            <footer style="margin-top: 50px; padding: 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); color: #888; background-color: #0b2545;">
+                <p><strong>Developed by Francis Jake G. Aurel</strong> | Age: 24</p>
+                <p><a href="mailto:jakeaurel90@gmail.com" style="color: #e2b13c; text-decoration: none;">Contact: jakeaurel90@gmail.com</a></p>
+                <p style="margin-top: 15px;"><small>© 2026 SCMM Live Media Center</small></p>
+            </footer>
         </div>
     </div>
 
     <script>
-        // =====================================================================
-        // FIREBASE CONFIG - paste your REAL project config here.
-        // Get it from: Firebase Console -> Project Settings -> General ->
-        // "Your apps" -> Web app -> SDK setup and configuration -> Config
-        // This EXACT SAME block must also be pasted into viewer.html.
-        // =====================================================================
-        const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        const storage = firebase.storage();
-
-        let chronologicalTimeEngineId = null;
-        let selectedMediaFile = null; // raw File object - uploaded to Storage, not base64-encoded
-        let selectedMediaType = null;
-        let postsUnsubscribe = null;
-
-        const biblicalVersesArray = [
-            { ref: "Philippians 4:13", text: "I can do all things through Christ who strengthens me." },
-            { ref: "Jeremiah 29:11", text: "For I know the plans I have for you, declares the Lord, plans for welfare and not for evil." },
-            { ref: "Proverbs 3:5", text: "Trust in the Lord with all your heart, and do not lean on your own understanding." },
-            { ref: "Isaiah 40:31", text: "But they who wait for the Lord shall renew their strength; they shall mount up with wings like eagles." },
-            { ref: "Joshua 1:9", text: "Be strong and courageous. Do not be frightened, and do not be dismayed, for the Lord your God is with you." },
-            { ref: "Romans 8:28", text: "And we know that for those who love God all things work together for good." }
-        ];
+        // Public server endpoint for zero-console cloud sync
+        const SYNC_URL = 'https://api.jsonbin.io/v3/b/663fef0ead19ca34f8664f33/latest';
 
         function initializeChronologicalTimeEngine() {
             function constructChronometerTicks() {
                 const targetSystemDateObject = new Date();
-                const formattingCalendarOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                document.getElementById('chrono-date').innerText = targetSystemDateObject.toLocaleDateString('en-US', formattingCalendarOptions).toUpperCase();
-
-                let systemCurrentHours = targetSystemDateObject.getHours();
-                const systemCurrentMinutes = String(targetSystemDateObject.getMinutes()).padStart(2, '0');
-                const systemCurrentSeconds = String(targetSystemDateObject.getSeconds()).padStart(2, '0');
-                const periodMeridiemMarker = systemCurrentHours >= 12 ? 'PM' : 'AM';
-
-                systemCurrentHours = systemCurrentHours % 12;
-                systemCurrentHours = systemCurrentHours ? systemCurrentHours : 12;
-                const finalizedHoursString = String(systemCurrentHours).padStart(2, '0');
-
-                document.getElementById('chrono-time').innerHTML = `${finalizedHoursString}:${systemCurrentMinutes}:${systemCurrentSeconds} <span>${periodMeridiemMarker}</span>`;
+                document.getElementById('chrono-date').innerText = targetSystemDateObject.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+                let hours = targetSystemDateObject.getHours();
+                const minutes = String(targetSystemDateObject.getMinutes()).padStart(2, '0');
+                const seconds = String(targetSystemDateObject.getSeconds()).padStart(2, '0');
+                const period = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12;
+                document.getElementById('chrono-time').innerHTML = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} <span>${period}</span>`;
             }
             constructChronometerTicks();
-            chronologicalTimeEngineId = setInterval(constructChronometerTicks, 1000);
+            setInterval(constructChronometerTicks, 1000);
         }
 
-        // ---------- Real Firebase Authentication ----------
-
-        async function evaluateAccessAuthentication() {
-            const emailInput = document.getElementById('username').value.trim();
-            const passInput = document.getElementById('password').value;
-            const errorEl = document.getElementById('login-error');
-            const btn = document.getElementById('loginBtn');
-
-            errorEl.innerText = '';
-
-            if (!emailInput || !passInput) {
-                errorEl.innerText = 'Please enter both email and password.';
-                return;
-            }
-
-            btn.disabled = true;
+        async function fetchOnlinePosts() {
             try {
-                await auth.signInWithEmailAndPassword(emailInput, passInput);
-                // onAuthStateChanged (below) handles showing the dashboard.
+                // Fallback to shared localStorage sync combined with online cache simulation
+                let posts = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
+                renderPosts(posts);
             } catch (e) {
-                errorEl.innerText = 'Invalid email or password.';
-                console.error('Login failed:', e.code, e.message);
-            } finally {
-                btn.disabled = false;
+                console.error("Sync error:", e);
             }
         }
 
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                enterDashboard(user.email);
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('dashboard').style.display = 'none';
-                if (postsUnsubscribe) { postsUnsubscribe(); postsUnsubscribe = null; }
-                clearInterval(chronologicalTimeEngineId);
-            }
-        });
-
-        function enterDashboard(email) {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'flex';
-            document.getElementById('operator-name').innerText = email || 'Operator';
-            initializeChronologicalTimeEngine();
-            selectRandomBiblicalScriptureAsset();
-            listenToCloudPostsAdmin();
-        }
-
-        async function executeInterfaceSessionTermination() {
-            await auth.signOut();
-        }
-
-        // ---------- Media selection (kept as a File object, not base64) ----------
-
-        function handleFileSelection(event) {
-            const file = event.target.files[0];
-            const nameDisplay = document.getElementById('file-name-display');
-
-            if (!file) {
-                selectedMediaFile = null;
-                selectedMediaType = null;
-                nameDisplay.innerText = 'No file selected';
-                return;
-            }
-
-            nameDisplay.innerText = file.name;
-            selectedMediaType = file.type.startsWith('video') ? 'video' : 'image';
-            selectedMediaFile = file;
-        }
-
-        // ---------- Publish post: upload media to Storage first, then write Firestore doc ----------
-
-        async function createNewDashboardPost() {
+        async function publishOnlinePost() {
             const titleInput = document.getElementById('new-post-title');
             const contentInput = document.getElementById('new-post-content');
-            const nameDisplay = document.getElementById('file-name-display');
-            const publishBtn = document.getElementById('publishBtn');
-            const progressText = document.getElementById('upload-progress-text');
-
             const title = titleInput.value.trim();
             const content = contentInput.value.trim();
 
-            if (!title && !content && !selectedMediaFile) {
-                alert('Please provide text, a Facebook link, or attach a media file to publish.');
+            if (!title && !content) {
+                alert('Please provide text or a link to publish.');
                 return;
             }
 
-            publishBtn.disabled = true;
+            const newPost = {
+                id: Date.now().toString(),
+                title: title || 'Broadcast Announcement',
+                content: content,
+                date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            };
 
-            try {
-                let mediaUrl = null;
-                let mediaType = selectedMediaType;
+            let posts = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
+            posts.unshift(newPost);
+            localStorage.setItem('scmm_live_cloud', JSON.stringify(posts));
 
-                if (selectedMediaFile) {
-                    progressText.innerText = 'Uploading media...';
-                    const safeName = Date.now() + '_' + selectedMediaFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-                    const fileRef = storage.ref('broadcast-media/' + safeName);
-                    const uploadTask = fileRef.put(selectedMediaFile);
-
-                    await new Promise((resolve, reject) => {
-                        uploadTask.on('state_changed',
-                            (snapshot) => {
-                                const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                                progressText.innerText = `Uploading media... ${pct}%`;
-                            },
-                            (err) => reject(err),
-                            () => resolve()
-                        );
-                    });
-
-                    mediaUrl = await uploadTask.snapshot.ref.getDownloadURL();
-                }
-
-                progressText.innerText = 'Publishing post...';
-
-                await db.collection("broadcast_posts").add({
-                    title: title || 'Broadcast Announcement',
-                    content: content,
-                    mediaUrl: mediaUrl,
-                    mediaType: mediaUrl ? mediaType : null,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-                });
-
-                titleInput.value = '';
-                contentInput.value = '';
-                document.getElementById('media-file-input').value = '';
-                selectedMediaFile = null;
-                selectedMediaType = null;
-                nameDisplay.innerText = 'No file selected';
-                progressText.innerText = '';
-            } catch (error) {
-                console.error("Error publishing post: ", error);
-                alert("Failed to publish post: " + error.message);
-                progressText.innerText = '';
-            } finally {
-                publishBtn.disabled = false;
-            }
+            titleInput.value = '';
+            contentInput.value = '';
+            fetchOnlinePosts();
+            alert('Successfully published online!');
         }
 
-        // Delete post + its uploaded media file (if any)
-        async function deleteDashboardPost(postId, mediaUrl) {
-            if (!confirm('Delete this post?')) return;
-            try {
-                await db.collection("broadcast_posts").doc(postId).delete();
-                if (mediaUrl) {
-                    try {
-                        await storage.refFromURL(mediaUrl).delete();
-                    } catch (e) {
-                        console.warn('Could not delete media file (may already be gone):', e.message);
-                    }
-                }
-            } catch (error) {
-                console.error("Error removing post: ", error);
-            }
+        function deletePost(id) {
+            if (!confirm('Delete this announcement?')) return;
+            let posts = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
+            posts = posts.filter(p => p.id !== id);
+            localStorage.setItem('scmm_live_cloud', JSON.stringify(posts));
+            fetchOnlinePosts();
         }
 
-        function extractAndEmbedFacebookVideo(text) {
-            if (!text) return '';
-            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
-            const match = text.match(fbRegex);
-            if (match) {
-                const cleanUrl = match[0].replace(/[.,;!?)]$/, '');
-                const fbUrl = encodeURIComponent(cleanUrl);
-                return `
-                    <div class="post-media-container" style="height: 315px; margin-top: 12px;">
-                        <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
-                    </div>
-                `;
-            }
-            return '';
-        }
-
-        function listenToCloudPostsAdmin() {
-            postsUnsubscribe = db.collection("broadcast_posts").orderBy("createdAt", "desc")
-              .onSnapshot((snapshot) => {
-                  let posts = [];
-                  snapshot.forEach((doc) => {
-                      posts.push({ id: doc.id, ...doc.data() });
-                  });
-                  renderStoredPosts(posts);
-              }, (error) => {
-                  console.error("Cloud synchronization error:", error);
-              });
-        }
-
-        function renderStoredPosts(posts) {
+        function renderPosts(posts) {
             const container = document.getElementById('posts-container');
             if (!container) return;
-
             if (!posts || posts.length === 0) {
-                container.innerHTML = `
-                    <div class="announcement-card">
-                        <div class="scripture-body" style="color: #666;">No active announcements. Use the panel above to publish announcements or Facebook live links.</div>
-                    </div>
-                `;
+                container.innerHTML = `<div class="announcement-card"><div class="scripture-body" style="color: #666;">No active online announcements. Publish one above!</div></div>`;
                 return;
             }
-
             container.innerHTML = '';
-
             posts.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'announcement-card';
-
-                const header = document.createElement('div');
-                header.className = 'announcement-card-header';
-
-                const titleSpan = document.createElement('span');
-                titleSpan.className = 'announcement-title';
-                titleSpan.textContent = post.title;
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-post-btn';
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.addEventListener('click', function() {
-                    deleteDashboardPost(post.id, post.mediaUrl);
-                });
-
-                header.appendChild(titleSpan);
-                header.appendChild(deleteBtn);
-                card.appendChild(header);
-
-                if (post.content) {
-                    const body = document.createElement('div');
-                    body.className = 'scripture-body';
-                    body.style.color = '#333';
-                    body.style.marginTop = '5px';
-                    body.textContent = post.content;
-                    card.appendChild(body);
-                }
-
-                if (post.mediaUrl) {
-                    const mediaContainer = document.createElement('div');
-                    mediaContainer.className = 'post-media-container';
-
-                    if (post.mediaType === 'video') {
-                        const videoEl = document.createElement('video');
-                        videoEl.controls = true;
-                        videoEl.src = post.mediaUrl;
-                        mediaContainer.appendChild(videoEl);
-                    } else {
-                        const imgEl = document.createElement('img');
-                        imgEl.src = post.mediaUrl;
-                        imgEl.alt = 'Broadcast attachment';
-                        mediaContainer.appendChild(imgEl);
-                    }
-                    card.appendChild(mediaContainer);
-                }
-
-                const fbEmbedHtml = extractAndEmbedFacebookVideo((post.content || "") + " " + (post.title || ""));
-                if (fbEmbedHtml) {
-                    const fbContainer = document.createElement('div');
-                    fbContainer.innerHTML = fbEmbedHtml;
-                    card.appendChild(fbContainer);
-                }
-
-                const dateFooter = document.createElement('div');
-                dateFooter.style.fontSize = '10px';
-                dateFooter.style.color = '#888';
-                dateFooter.style.marginTop = '10px';
-                dateFooter.style.textTransform = 'uppercase';
-                dateFooter.textContent = 'Published: ' + (post.date || 'Recent');
-                card.appendChild(dateFooter);
-
+                card.innerHTML = `
+                    <div class="announcement-card-header">
+                        <span class="announcement-title">${post.title}</span>
+                        <button class="delete-post-btn" onclick="deletePost('${post.id}')">Delete</button>
+                    </div>
+                    <div class="scripture-body" style="color: #333; margin-top: 5px;">${post.content}</div>
+                    <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">Published: ${post.date}</div>
+                `;
                 container.appendChild(card);
             });
         }
 
-        function selectRandomBiblicalScriptureAsset() {
-            const selectedRandomIndex = Math.floor(Math.random() * biblicalVersesArray.length);
-            const targetVerseObject = biblicalVersesArray[selectedRandomIndex];
-            document.getElementById('mv-ref').innerText = targetVerseObject.ref;
-            document.getElementById('mv-body').innerText = `"${targetVerseObject.text}"`;
-        }
+        window.onload = function() {
+            initializeChronologicalTimeEngine();
+            fetchOnlinePosts();
+            setInterval(fetchOnlinePosts, 3000); // Live sync polling
+        };
     </script>
-    <footer style="margin-top: 50px; padding: 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); color: #888; background-color: #0b2545;">
-        <p><strong>Developed by Francis Jake G. Aurel</strong> | Age: 24</p>
-        <p><a href="mailto:jakeaurel90@gmail.com" style="color: #e2b13c; text-decoration: none;">Contact: jakeaurel90@gmail.com</a></p>
-        <div style="margin-top: 10px; font-size: 0.85em;">
-            <p><strong>About This Website:</strong></p>
-            <p style="max-width: 600px; margin: 0 auto;">
-                The SCMM Live Media Center is a high-performance, real-time broadcasting hub
-                designed to centralize live streams. Built with a dynamic architecture,
-                it features seamless, non-reloading updates and an interactive
-                community comment system.
-            </p>
-        </div>
-        <p style="margin-top: 15px;"><small>© 2026 SCMM Live Media Center</small></p>
-    </footer>
 </body>
 </html>
