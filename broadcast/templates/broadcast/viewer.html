@@ -33,7 +33,7 @@
         .announcement-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
         .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
         
-        /* Fixed Rigid Video Container (Zero Fluctuation / Zero Bug) */
+        /* Anti-Fluctuation Locked Video Container */
         .video-container {
             width: 100%;
             height: 380px;
@@ -42,6 +42,9 @@
             overflow: hidden;
             margin-top: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            contain: layout size style;
         }
         .video-container iframe {
             width: 100%;
@@ -154,7 +157,6 @@
         function parseAndEmbedVideo(text) {
             if (!text) return '';
 
-            // 1. Facebook Video & Live Stream Embedder
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
             const fbMatch = text.match(fbRegex);
             if (fbMatch) {
@@ -166,7 +168,6 @@
                 `;
             }
 
-            // 2. YouTube Video & Live Stream Embedder
             const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
             const ytMatch = ytRegex.exec(text);
             if (ytMatch && ytMatch[1]) {
@@ -181,6 +182,8 @@
             return '';
         }
 
+        let lastRenderedPostsHash = "";
+
         function loadViewerPosts() {
             const container = document.getElementById('viewer-posts-container');
             if (!container) return;
@@ -188,8 +191,14 @@
 
             if (!posts || posts.length === 0) {
                 container.innerHTML = `<div class="announcement-card"><div class="scripture-body" style="color: #666;">No active live broadcasts or announcements at the moment. Please check back soon.</div></div>`;
+                lastRenderedPostsHash = "";
                 return;
             }
+
+            // Prevent DOM re-rendering jitter if posts haven't changed
+            const currentHash = JSON.stringify(posts);
+            if (currentHash === lastRenderedPostsHash) return;
+            lastRenderedPostsHash = currentHash;
 
             container.innerHTML = '';
             posts.forEach(post => {
