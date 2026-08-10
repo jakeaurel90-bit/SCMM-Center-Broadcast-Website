@@ -101,7 +101,7 @@
     </div>
 
     <script>
-        // Initialize Firebase (Ensure these keys match your project credentials)
+        // Initialize Firebase (Ensure these keys match your project configuration)
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -127,7 +127,7 @@
             return null;
         }
 
-        // Real-time Cloud Firestore Listener for Instant Multi-Device Sync
+        // Real-time Cloud Firestore Listener for Instant Online Multi-Device Sync
         function listenToCloudPostsOnline() {
             db.collection("broadcast_posts").orderBy("createdAt", "desc")
               .onSnapshot((snapshot) => {
