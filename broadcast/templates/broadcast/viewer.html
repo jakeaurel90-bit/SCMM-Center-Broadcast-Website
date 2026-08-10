@@ -30,8 +30,9 @@
         }
 
         .page-wrapper { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-        .stream-box { background: #000; border-radius: 8px; overflow: hidden; height: 400px; width: 100%; border: 2px solid var(--accent-gold); margin-bottom: 20px; }
-        iframe { width: 100%; height: 100%; border: none; }
+        .stream-box { background: #000; border-radius: 8px; overflow: hidden; min-height: 400px; width: 100%; border: 2px solid var(--accent-gold); margin-bottom: 20px; display: flex; flex-direction: column; }
+        
+        iframe { width: 100%; height: 100%; border: none; flex: 1; }
         #update-container { display: flex; flex-direction: column; gap: 20px; }
         
         /* Social Media Button Styling */
@@ -75,13 +76,13 @@
 
         <div class="page-wrapper" style="margin-top: 20px;">
             <main>
-                <div class="stream-box">
-                    <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen></iframe>
+                <!-- Dynamic Main Video Player (Prioritizes latest Facebook Live link posted, falls back to YouTube) -->
+                <div class="stream-box" id="main-live-player-container">
+                    <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                 </div>
             </main>
             
             <aside id="update-container">
-                <!-- Dynamic Recent Posts Feed for Viewers -->
                 <div id="announcement-content">
                     <h3 style="color: var(--accent-gold); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Recent Broadcast Posts</h3>
                     <div id="viewer-posts-feed">
@@ -97,24 +98,32 @@
     </div>
 
     <script>
-        function extractAndEmbedFacebookVideo(text) {
-            if (!text) return '';
+        // Robust parser to extract a clean Facebook URL from text inputs
+        function extractFacebookUrl(text) {
+            if (!text) return null;
+            // Matches standard facebook video, watch, reel, live, or shared links
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch)\/[^\s]+)/g;
-            const match = text.match(fbRegex);
-            if (match) {
-                const fbUrl = encodeURIComponent(match[0]);
-                return `
-                    <div class="post-media-container" style="height: 315px; margin-top: 10px;">
-                        <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
-                    </div>
-                `;
+            const matches = text.match(fbRegex);
+            if (matches && matches.length > 0) {
+                // Clean up trailing characters like punctuation marks if grabbed by mistake
+                return matches[0].replace(/[.,;!?)]$/, '');
             }
-            return '';
+            return null;
+        }
+
+        // Generates an unbugged, stable Facebook embedded player iframe URL with live attributes
+        function getFacebookEmbedIframeHtml(url, height = "100%") {
+            const encodedUrl = encodeURIComponent(url);
+            // Added allowfullscreen, autoplay, and proper parameters for continuous playback without interruption
+            return `<iframe src="https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&width=560&autoplay=true" width="100%" height="${height}" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
         }
 
         function renderViewerPosts() {
             const feedContainer = document.getElementById('viewer-posts-feed');
+            const mainPlayerContainer = document.getElementById('main-live-player-container');
             const posts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
+
+            let latestFacebookLiveUrl = null;
 
             if (posts.length === 0) {
                 feedContainer.innerHTML = `
@@ -122,10 +131,11 @@
                         <p style="color: #8da9c4; margin: 0;">No announcements at this time.</p>
                     </div>
                 `;
+                mainPlayerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
                 return;
             }
 
-            feedContainer.innerHTML = posts.map(post => {
+            feedContainer.innerHTML = posts.map((post, index) => {
                 let mediaHtml = '';
                 if (post.mediaData) {
                     if (post.mediaType === 'video') {
@@ -135,7 +145,19 @@
                     }
                 }
 
-                const fbEmbedHtml = extractAndEmbedFacebookVideo(post.content + " " + post.title);
+                // Search for Facebook live/video link in title or content
+                const fullText = (post.title || "") + " " + (post.content || "");
+                const detectedFbUrl = extractFacebookUrl(fullText);
+
+                // Track the very first (latest) Facebook link encountered to feature on the main player box
+                if (detectedFbUrl && !latestFacebookLiveUrl) {
+                    latestFacebookLiveUrl = detectedFbUrl;
+                }
+
+                let fbEmbedHtml = '';
+                if (detectedFbUrl) {
+                    fbEmbedHtml = `<div class="post-media-container" style="height: 315px; margin-top: 10px;">${getFacebookEmbedIframeHtml(detectedFbUrl, "315")}</div>`;
+                }
 
                 return `
                     <div class="post-card">
@@ -147,6 +169,23 @@
                     </div>
                 `;
             }).join('');
+
+            // Automatically sync the main top video player box with the newest Facebook Live link if available
+            if (latestFacebookLiveUrl) {
+                // Only reload iframe source if it changed to prevent playback stutter/reloading bugs
+                const currentIframe = mainPlayerContainer.querySelector('iframe');
+                const targetEmbedHtml = getFacebookEmbedIframeHtml(latestFacebookLiveUrl, "100%");
+                
+                if (!currentIframe || !currentIframe.src.includes(encodeURIComponent(latestFacebookLiveUrl))) {
+                    mainPlayerContainer.innerHTML = targetEmbedHtml;
+                }
+            } else {
+                // Fallback to default YouTube live stream stream box if no FB live link is posted
+                const currentIframe = mainPlayerContainer.querySelector('iframe');
+                if (!currentIframe || !currentIframe.src.includes('youtube.com')) {
+                    mainPlayerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+                }
+            }
         }
 
         function escapeHtml(text) {
@@ -156,7 +195,8 @@
         }
 
         renderViewerPosts();
-        setInterval(renderViewerPosts, 3000);
+        // Polling interval ensures seamless real-time syncing across all active viewer tabs without manual page refreshes
+        setInterval(renderViewerPosts, 2500);
     </script>
 </body>
 </html>
