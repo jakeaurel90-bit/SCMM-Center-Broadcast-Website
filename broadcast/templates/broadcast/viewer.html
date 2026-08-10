@@ -69,12 +69,12 @@
 
         <div class="social-links">
             <a href="https://www.facebook.com/scmm.head.quarters" target="_blank" class="social-btn">Facebook</a>
-            <a href="youtube.html" class="social-btn">YouTube Channel Hub</a>
+            <a href="https://www.youtube.com/@scmm" target="_blank" rel="noopener noreferrer" class="social-btn">YouTube Channel Hub (@scmm)</a>
         </div>
 
         <div class="page-wrapper" style="margin-top: 20px;">
             <main>
-                <!-- Single Main Video Screen Player: Automatically reveals and embeds Facebook Live / video links completely without interruption -->
+                <!-- Single Main Video Screen Player: Automatically reveals and embeds Facebook Live / video links strictly -->
                 <div class="stream-box" id="main-live-player-container">
                     <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                 </div>
@@ -83,9 +83,7 @@
             <aside id="update-container">
                 <div id="announcement-content">
                     <h3 style="color: var(--accent-gold); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Recent Broadcast Posts</h3>
-                    <div id="viewer-posts-feed">
-                        <!-- Posts injected here as text/images only, while any live video link is fully revealed and played on the single main screen player -->
-                    </div>
+                    <div id="viewer-posts-feed"></div>
                 </div>
 
                 <div id="comment-box">
@@ -96,24 +94,15 @@
     </div>
 
     <script>
-        function extractVideoUrl(text) {
+        function extractFacebookUrl(text) {
             if (!text) return null;
-            
-            // Check for Facebook video or live links (supports facebook.com/watch, fb.watch, plugins, etc.)
+            // Strictly check for Facebook video or live links only
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/)[^\s]+)/g;
             const fbMatch = text.match(fbRegex);
             if (fbMatch && fbMatch.length > 0) {
                 const cleanUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
                 return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(cleanUrl)}&show_text=false&width=560&autoplay=true`;
             }
-
-            // Check for YouTube video or live links
-            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
-            const ytMatch = ytRegex.exec(text);
-            if (ytMatch && ytMatch[1]) {
-                return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
-            }
-
             return null;
         }
 
@@ -122,7 +111,7 @@
             const mainPlayerContainer = document.getElementById('main-live-player-container');
             const posts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
 
-            let activeVideoEmbedUrl = null;
+            let activeFacebookEmbedUrl = null;
 
             if (posts.length === 0) {
                 feedContainer.innerHTML = `
@@ -148,11 +137,10 @@
                 }
 
                 const fullText = (post.title || "") + " " + (post.content || "");
-                const detectedEmbedUrl = extractVideoUrl(fullText);
+                const detectedFbUrl = extractFacebookUrl(fullText);
 
-                // Capture the first (latest) posted link to completely take over the main screen player
-                if (detectedEmbedUrl && !activeVideoEmbedUrl) {
-                    activeVideoEmbedUrl = detectedEmbedUrl;
+                if (detectedFbUrl && !activeFacebookEmbedUrl) {
+                    activeFacebookEmbedUrl = detectedFbUrl;
                 }
 
                 return `
@@ -165,13 +153,12 @@
                 `;
             }).join('');
 
-            // Automatically reveal and sync the single main screen player with the latest posted video link
             const currentIframe = mainPlayerContainer.querySelector('iframe');
             
-            if (activeVideoEmbedUrl) {
-                const baseTargetUrl = activeVideoEmbedUrl.split('?')[0];
+            if (activeFacebookEmbedUrl) {
+                const baseTargetUrl = activeFacebookEmbedUrl.split('?')[0];
                 if (!currentIframe || !currentIframe.src.includes(baseTargetUrl)) {
-                    mainPlayerContainer.innerHTML = `<iframe src="${activeVideoEmbedUrl}" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+                    mainPlayerContainer.innerHTML = `<iframe src="${activeFacebookEmbedUrl}" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
                 }
             } else {
                 if (!currentIframe || !currentIframe.src.includes('live_stream')) {
