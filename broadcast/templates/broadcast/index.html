@@ -17,38 +17,7 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0d2c54; color: #333; display: flex; min-height: 100vh; }
-        
-        /* Login Overlay Modal */
-        #login-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(11, 37, 69, 0.95);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999;
-        }
-        .login-box {
-            background-color: var(--panel-blue);
-            padding: 40px;
-            border-radius: 12px;
-            border: 2px solid var(--accent-gold);
-            width: 360px;
-            text-align: center;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-        }
-        .login-box h2 { color: var(--accent-gold); margin-bottom: 20px; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
-        .login-box input {
-            width: 100%; padding: 12px; margin-bottom: 15px;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 6px; color: white; font-size: 14px; outline: none; text-align: center;
-        }
-        .login-box button {
-            width: 100%; background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
-            color: #111; padding: 12px; border: none; border-radius: 6px;
-            font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .login-error { color: #ff6b6b; font-size: 12px; margin-top: 10px; display: none; }
-
-        #dashboard { display: none; width: 100%; min-height: 100vh; }
+        #dashboard { display: flex; width: 100%; min-height: 100vh; }
         .sidebar-brand { width: 140px; background-color: var(--bg-dark-blue); display: flex; flex-direction: column; align-items: center; padding-top: 30px; border-right: 1px solid rgba(255,255,255,0.05); position: fixed; height: 100vh; }
         .brand-logo { width: 70px; height: auto; margin-bottom: 10px; }
         .brand-text { color: var(--text-light); font-weight: bold; font-size: 18px; letter-spacing: 1px; }
@@ -59,9 +28,8 @@
         .header-titles h2 { color: var(--text-muted); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
         .header-titles h1 { color: var(--text-light); font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
         .header-user-actions { display: flex; align-items: center; gap: 20px; }
-        .logout-btn { background-color: var(--danger-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; }
+        .logout-btn { background-color: var(--danger-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; text-decoration: none; }
         .logout-btn:hover { background-color: var(--danger-red-hover); }
-        
         .dashboard-grid { padding: 20px; display: grid; grid-template-columns: 1fr 340px; gap: 20px; flex: 1; }
         .left-column-group { display: flex; flex-direction: column; gap: 20px; }
         .theme-banner { background: linear-gradient(rgba(11, 37, 69, 0.4), rgba(11, 37, 69, 0.7)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover; border-radius: 12px; height: 180px; padding: 30px; display: flex; flex-direction: column; justify-content: flex-end; border: 1px solid rgba(255,255,255,0.1); }
@@ -76,23 +44,9 @@
         .announcement-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
         .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
         .delete-post-btn { background-color: var(--danger-red); color: white; border: none; padding: 6px 14px; font-size: 11px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
-        
-        .video-container {
-            width: 100%;
-            height: 380px;
-            background-color: #000000;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            position: relative;
-        }
+        .video-container { width: 100%; height: 380px; background-color: #000000; border-radius: 8px; overflow: hidden; margin-top: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); position: relative; }
         .video-container iframe { width: 100%; height: 100%; border: none; display: block; }
-        .mobile-watch-btn {
-            display: block; margin-top: 10px; background-color: #1877f2; color: white;
-            text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 13px;
-        }
-
+        .mobile-watch-btn { display: block; margin-top: 10px; background-color: #1877f2; color: white; text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 13px; }
         .scripture-display-rack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .scripture-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .scripture-card-header { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
@@ -108,19 +62,6 @@
     </style>
 </head>
 <body>
-
-    <!-- SECURE LOGIN MODAL -->
-    <div id="login-overlay">
-        <div class="login-box">
-            <h2>Admin Authentication</h2>
-            <form onsubmit="handleAdminLogin(event)">
-                <input type="text" id="admin-user" placeholder="Username (SCMM)" required autocomplete="username">
-                <input type="password" id="admin-pass" placeholder="Password" required autocomplete="current-password">
-                <button type="submit">Log In to Dashboard</button>
-                <div id="login-error" class="login-error">Incorrect username or password.</div>
-            </form>
-        </div>
-    </div>
 
     <div id="dashboard">
         <aside class="sidebar-brand">
@@ -144,7 +85,7 @@
                     </div>
                 </div>
                 <div class="header-user-actions">
-                    <button class="logout-btn" onclick="handleAdminLogout()">Log Out</button>
+                    <a href="logout.html" class="logout-btn">Log Out</a>
                 </div>
             </header>
 
@@ -200,44 +141,16 @@
 
     <script>
         const CLOUD_BIN_URL = "https://api.npoint.io/7c37418b762c9535e98b";
-        const ADMIN_USER = "SCMM";
-        const ADMIN_PASSWORD = "scmm2026admin";
 
-        function checkLoginState() {
-            const isLogged = sessionStorage.getItem('scmm_admin_logged');
-            if (isLogged === 'true') {
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'flex';
-                initializeChronologicalTimeEngine();
-                fetchOnlinePosts();
-                setInterval(fetchOnlinePosts, 3000);
-            } else {
-                document.getElementById('login-overlay').style.display = 'flex';
-                document.getElementById('dashboard').style.display = 'none';
+        window.onload = function() {
+            if (sessionStorage.getItem('scmm_admin_logged') !== 'true') {
+                window.location.href = 'login.html';
+                return;
             }
-        }
-
-        function handleAdminLogin(event) {
-            event.preventDefault();
-            const userInput = document.getElementById('admin-user').value.trim();
-            const passInput = document.getElementById('admin-pass').value;
-            const errorDiv = document.getElementById('login-error');
-
-            if (userInput === ADMIN_USER && passInput === ADMIN_PASSWORD) {
-                sessionStorage.setItem('scmm_admin_logged', 'true');
-                document.getElementById('admin-user').value = '';
-                document.getElementById('admin-pass').value = '';
-                errorDiv.style.display = 'none';
-                checkLoginState();
-            } else {
-                errorDiv.style.display = 'block';
-            }
-        }
-
-        function handleAdminLogout() {
-            sessionStorage.removeItem('scmm_admin_logged');
-            location.reload();
-        }
+            initializeChronologicalTimeEngine();
+            fetchOnlinePosts();
+            setInterval(fetchOnlinePosts, 3000);
+        };
 
         function initializeChronologicalTimeEngine() {
             function constructChronometerTicks() {
@@ -256,12 +169,17 @@
 
         async function fetchOnlinePosts() {
             try {
-                let response = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
+                let response = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "reload" });
                 if (response.ok) {
                     let data = await response.json();
                     let posts = Array.isArray(data) ? data : (data.posts || []);
-                    renderPosts(posts);
-                    localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
+                    if (posts.length > 0) {
+                        renderPosts(posts);
+                        localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
+                    } else {
+                        let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
+                        renderPosts(local);
+                    }
                 }
             } catch (e) {
                 let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
@@ -289,7 +207,7 @@
 
             let currentPosts = [];
             try {
-                let res = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
+                let res = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "reload" });
                 if (res.ok) {
                     let data = await res.json();
                     currentPosts = Array.isArray(data) ? data : (data.posts || []);
@@ -306,9 +224,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(currentPosts)
                 });
-            } catch(err) {
-                console.error("Cloud write error:", err);
-            }
+            } catch(err) {}
 
             localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(currentPosts));
             titleInput.value = '';
@@ -322,7 +238,7 @@
             
             let currentPosts = [];
             try {
-                let res = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
+                let res = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "reload" });
                 if (res.ok) {
                     let data = await res.json();
                     currentPosts = Array.isArray(data) ? data : (data.posts || []);
@@ -421,10 +337,6 @@
                 container.appendChild(card);
             });
         }
-
-        window.onload = function() {
-            checkLoginState();
-        };
     </script>
 </body>
 </html>

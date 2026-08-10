@@ -32,36 +32,9 @@
         .announcement-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-bottom: 15px; border-left: 5px solid #e2b13c; }
         .announcement-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
         .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
-        
-        .video-container {
-            width: 100%;
-            height: 380px;
-            background-color: #000000;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            position: relative;
-        }
-        .video-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-        .mobile-watch-btn {
-            display: block;
-            margin-top: 10px;
-            background-color: #1877f2;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 13px;
-        }
-
+        .video-container { width: 100%; height: 380px; background-color: #000000; border-radius: 8px; overflow: hidden; margin-top: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); position: relative; }
+        .video-container iframe { width: 100%; height: 100%; border: none; display: block; }
+        .mobile-watch-btn { display: block; margin-top: 10px; background-color: #1877f2; color: white; text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 13px; }
         .scripture-display-rack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .scripture-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .scripture-card-header { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
@@ -150,6 +123,12 @@
     <script>
         const CLOUD_BIN_URL = "https://api.npoint.io/7c37418b762c9535e98b";
 
+        window.onload = function() {
+            initializeChronologicalTimeEngine();
+            loadViewerPosts();
+            setInterval(loadViewerPosts, 2000);
+        };
+
         function initializeChronologicalTimeEngine() {
             function constructChronometerTicks() {
                 const targetSystemDateObject = new Date();
@@ -170,17 +149,19 @@
             if (!container) return;
 
             try {
-                let response = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
+                let response = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "reload" });
                 if (response.ok) {
                     let data = await response.json();
                     let posts = Array.isArray(data) ? data : (data.posts || []);
-                    renderViewerPosts(posts);
-                    localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
-                } else {
-                    throw new Error("Cloud fetch failed");
+                    if (posts.length > 0) {
+                        renderViewerPosts(posts);
+                        localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
+                    } else {
+                        let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
+                        renderViewerPosts(local);
+                    }
                 }
             } catch (e) {
-                // Fallback to local storage backup if cloud lookup is restricted
                 let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
                 renderViewerPosts(local);
             }
@@ -188,30 +169,46 @@
 
         function parseAndEmbedVideo(text) {
             if (!text) return '';
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const match = text.match(urlRegex);
+            const directUrl = match ? match[0].replace(/[.,;!?)]$/, '') : '';
+
+            let mediaHtml = '';
+
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
             const fbMatch = text.match(fbRegex);
             if (fbMatch) {
                 const rawUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
                 const cleanUrl = encodeURIComponent(rawUrl);
-                return `
+                mediaHtml = `
                     <div class="video-container">
                         <iframe src="https://www.facebook.com/plugins/video.php?href=${cleanUrl}&show_text=false&width=560&autoplay=true&allowfullscreen=true" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                     </div>
-                    <a href="${rawUrl}" target="_blank" class="mobile-watch-btn">▶ Watch Live on Facebook (If Mobile App Blocks Player)</a>
                 `;
             }
+
             const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
             const ytMatch = ytRegex.exec(text);
             if (ytMatch && ytMatch[1]) {
                 const ytId = ytMatch[1];
-                return `
+                mediaHtml = `
                     <div class="video-container">
                         <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&rel=0" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                     </div>
-                    <a href="https://www.youtube.com/watch?v=${ytId}" target="_blank" class="mobile-watch-btn" style="background-color: #ff0000;">▶ Watch Live on YouTube</a>
                 `;
             }
-            return '';
+
+            if (directUrl) {
+                mediaHtml += `
+                    <div style="margin-top: 12px; padding: 12px; background: #0b2545; border-radius: 6px; text-align: center;">
+                        <a href="${directUrl}" target="_blank" style="color: #e2b13c; font-weight: bold; text-decoration: none; font-size: 14px; word-break: break-all;">
+                            📱 Tap Here to Open Live Stream Directly: ${directUrl}
+                        </a>
+                    </div>
+                `;
+            }
+
+            return mediaHtml;
         }
 
         let lastRenderedPostsHash = "";
@@ -245,12 +242,6 @@
                 container.appendChild(card);
             });
         }
-
-        window.onload = function() {
-            initializeChronologicalTimeEngine();
-            loadViewerPosts();
-            setInterval(loadViewerPosts, 2000); // Continuous polling for all viewers worldwide
-        };
     </script>
 </body>
 </html>
