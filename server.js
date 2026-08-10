@@ -2,28 +2,21 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
-// Serve all static assets from the root directory
 app.use(express.static(path.join(__dirname)));
 
-// Route handlers for pages
-app.get(['/', '/viewer.html', '/live', '/LIVE'], (req, res) => {
-    res.sendFile(path.join(__dirname, 'viewer.html'), (err) => {
+// Fallback to index or viewer if requested files are missing
+app.get('*', (req, res, next) => {
+    const filePath = path.join(__dirname, req.path === '/' ? '/viewer.html' : req.path);
+    res.sendFile(filePath, (err) => {
         if (err) {
-            res.status(404).send('viewer.html not found in server directory');
+            // If file doesn't exist, send viewer.html as default fallback
+            res.sendFile(path.join(__dirname, 'viewer.html'), (innerErr) => {
+                if (innerErr) {
+                    res.status(404).send('Error: Could not locate web pages in repository root directory.');
+                }
+            });
         }
     });
-});
-
-app.get(['/login.html', '/login'], (req, res) => {
-    res.sendFile(path.join(__dirname, 'login.html'));
-});
-
-app.get(['/logout.html', '/logout'], (req, res) => {
-    res.sendFile(path.join(__dirname, 'logout.html'));
-});
-
-app.get(['/index.html', '/admin'], (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
