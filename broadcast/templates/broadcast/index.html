@@ -466,12 +466,11 @@
             line-height: 1.5;
         }
 
-        /* Rendered media in posts */
+        /* Rendered media & Facebook embeds */
         .post-media-container {
             margin-top: 12px;
             border-radius: 8px;
             overflow: hidden;
-            max-height: 350px;
             background: #000;
             display: flex;
             justify-content: center;
@@ -856,23 +855,23 @@
                     <div class="post-creation-panel">
                         <h3>+ Create Multimedia Broadcast Post</h3>
                         <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
-                        <textarea id="new-post-content" placeholder="Write broadcast message details here..."></textarea>
+                        <textarea id="new-post-content" placeholder="Write announcement details or paste Facebook video/live link here..."></textarea>
                         
                         <div class="media-upload-row">
                             <label for="media-file-input">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
                                 </svg>
-                                Attach Photo / Video
+                                Attach Photo / Video File
                             </label>
                             <input type="file" id="media-file-input" accept="image/*,video/*" onchange="handleFileSelection(event)">
                             <span id="file-name-display">No file selected</span>
                         </div>
 
-                        <button onclick="createNewDashboardPost()">Publish Post with Media</button>
+                        <button onclick="createNewDashboardPost()">Publish Post</button>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER WITH FULLY FUNCTIONAL DELETE LOGIC -->
+                    <!-- LIVE POST FEED CONTAINER WITH FACEBOOK EMBED DETECTION -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -968,7 +967,7 @@
 
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">12:58:24 <span>PM</span></div>
+                        <div class="chronometer-readout-time" id="chrono-time">1:05:16 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -1113,7 +1112,7 @@
             const content = contentInput.value.trim();
 
             if (!title && !content && !selectedMediaFileBase64) {
-                alert('Please provide text or attach a photo/video to publish.');
+                alert('Please provide text, a Facebook link, or attach a media file to publish.');
                 return;
             }
 
@@ -1121,7 +1120,7 @@
 
             const newPost = {
                 id: uniqueId,
-                title: title || 'Broadcast Media Attachment',
+                title: title || 'Broadcast Announcement',
                 content: content,
                 mediaData: selectedMediaFileBase64,
                 mediaType: selectedMediaType,
@@ -1150,6 +1149,22 @@
             renderStoredPosts();
         }
 
+        // Helper function to detect and generate Facebook video/live iframe embeds
+        function extractAndEmbedFacebookVideo(text) {
+            if (!text) return '';
+            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch)\/[^\s]+)/g;
+            const match = text.match(fbRegex);
+            if (match) {
+                const fbUrl = encodeURIComponent(match[0]);
+                return `
+                    <div class="post-media-container" style="height: 315px; margin-top: 12px;">
+                        <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
         function renderStoredPosts() {
             const container = document.getElementById('posts-container');
             if (!container) return;
@@ -1158,7 +1173,7 @@
             if (posts.length === 0) {
                 container.innerHTML = `
                     <div class="announcement-card">
-                        <div class="scripture-body" style="color: #666;">No active announcements. Use the panel above to publish text, photos, or videos.</div>
+                        <div class="scripture-body" style="color: #666;">No active announcements. Use the panel above to publish announcements or Facebook live links.</div>
                     </div>
                 `;
                 return;
@@ -1198,6 +1213,7 @@
                     card.appendChild(body);
                 }
 
+                // Check for attached media file (photo/video)
                 if (post.mediaData) {
                     const mediaContainer = document.createElement('div');
                     mediaContainer.className = 'post-media-container';
@@ -1214,6 +1230,14 @@
                         mediaContainer.appendChild(imgEl);
                     }
                     card.appendChild(mediaContainer);
+                }
+
+                // Check if content or title has a Facebook Live / video link
+                const fbEmbedHtml = extractAndEmbedFacebookVideo(post.content + " " + post.title);
+                if (fbEmbedHtml) {
+                    const fbContainer = document.createElement('div');
+                    fbContainer.innerHTML = fbEmbedHtml;
+                    card.appendChild(fbContainer);
                 }
 
                 const dateFooter = document.createElement('div');
