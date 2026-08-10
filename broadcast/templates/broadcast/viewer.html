@@ -71,7 +71,8 @@
 
         <div class="social-links">
             <a href="viewers.html" class="social-btn">Main Live Hub</a>
-            <button onclick="revealChannelEmbed()" class="social-btn">YouTube Channel (@scmm)</button>
+            <!-- YouTube Channel Hub Button triggers functional redirect to https://www.youtube.com/@scmm -->
+            <button onclick="openYouTubeChannelHub()" class="social-btn">YouTube Channel (@scmm)</button>
         </div>
 
         <div class="page-wrapper" style="margin-top: 20px;">
@@ -98,13 +99,9 @@
     </div>
 
     <script>
-        let isChannelForced = false;
-
-        function revealChannelEmbed() {
-            isChannelForced = true;
-            const mainPlayerContainer = document.getElementById('main-youtube-player-container');
-            // Using an embedded preview / fallback search query iframe player view for the channel
-            mainPlayerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed?listType=search&list=SCMM+South+Central+Mindanao+Mission" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+        // YouTube Channel Hub Function
+        function openYouTubeChannelHub() {
+            window.open('https://www.youtube.com/@scmm', '_blank', 'noopener,noreferrer');
         }
 
         function extractYouTubeUrl(text) {
@@ -130,7 +127,8 @@
                         <p style="color: #8da9c4; margin: 0;">No announcements at this time.</p>
                     </div>
                 `;
-                if (!isChannelForced) {
+                const currentIframe = mainPlayerContainer.querySelector('iframe');
+                if (!currentIframe || !currentIframe.src.includes('live_stream')) {
                     mainPlayerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
                 }
                 return;
@@ -163,17 +161,15 @@
                 `;
             }).join('');
 
-            // Automatically sync the single main screen player with posted YouTube links unless channel button was clicked
-            if (!isChannelForced) {
-                const currentIframe = mainPlayerContainer.querySelector('iframe');
-                if (latestYouTubeEmbedUrl) {
-                    if (!currentIframe || !currentIframe.src.includes(latestYouTubeEmbedUrl.split('?')[0])) {
-                        mainPlayerContainer.innerHTML = `<iframe src="${latestYouTubeEmbedUrl}" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
-                    }
-                } else {
-                    if (!currentIframe || !currentIframe.src.includes('live_stream')) {
-                        mainPlayerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
-                    }
+            // Automatically sync the single main screen player with posted YouTube links
+            const currentIframe = mainPlayerContainer.querySelector('iframe');
+            if (latestYouTubeEmbedUrl) {
+                if (!currentIframe || !currentIframe.src.includes(latestYouTubeEmbedUrl.split('?')[0])) {
+                    mainPlayerContainer.innerHTML = `<iframe src="${latestYouTubeEmbedUrl}" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+                }
+            } else {
+                if (!currentIframe || !currentIframe.src.includes('live_stream')) {
+                    mainPlayerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
                 }
             }
         }
