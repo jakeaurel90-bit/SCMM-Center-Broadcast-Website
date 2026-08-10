@@ -2,10 +2,16 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
+// Serve all static assets from the root directory
 app.use(express.static(path.join(__dirname)));
 
+// Route handlers for pages
 app.get(['/', '/viewer.html', '/live', '/LIVE'], (req, res) => {
-    res.sendFile(path.join(__dirname, 'viewer.html'));
+    res.sendFile(path.join(__dirname, 'viewer.html'), (err) => {
+        if (err) {
+            res.status(404).send('viewer.html not found in server directory');
+        }
+    });
 });
 
 app.get(['/login.html', '/login'], (req, res) => {
