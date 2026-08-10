@@ -395,7 +395,49 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            position: relative;
+        }
+
+        .announcement-card {
+            background-color: var(--text-light);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+            border-left: 5px solid #e2b13c;
+        }
+
+        .announcement-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .announcement-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--bg-dark-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .delete-post-btn {
+            background-color: var(--danger-red);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .delete-post-btn:hover {
+            background-color: var(--danger-red-hover);
         }
 
         .scripture-card-header {
@@ -407,7 +449,6 @@
             margin-bottom: 12px;
             border-bottom: 1px solid #eee;
             padding-bottom: 6px;
-            padding-right: 60px; /* space for delete button */
         }
 
         .scripture-reference {
@@ -421,27 +462,6 @@
             font-size: 13.5px;
             color: #444;
             line-height: 1.5;
-        }
-
-        /* Delete button styling */
-        .delete-post-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: var(--danger-red);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .delete-post-btn:hover {
-            background-color: var(--danger-red-hover);
         }
 
         /* Rendered media in posts */
@@ -850,7 +870,7 @@
                         <button onclick="createNewDashboardPost()">Publish Post with Media</button>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER WITH DELETE BUTTONS -->
+                    <!-- LIVE POST FEED CONTAINER WITH CLEAR DELETE BUTTONS -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -946,7 +966,7 @@
 
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">12:42:40 <span>PM</span></div>
+                        <div class="chronometer-readout-time" id="chrono-time">12:47:05 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -1127,7 +1147,7 @@
 
             if (posts.length === 0) {
                 container.innerHTML = `
-                    <div class="scripture-card" style="margin-bottom: 15px;">
+                    <div class="announcement-card">
                         <div class="scripture-body" style="color: #666;">No active announcements. Use the panel above to publish text, photos, or videos.</div>
                     </div>
                 `;
@@ -1153,9 +1173,11 @@
                 }
 
                 return `
-                    <div class="scripture-card" style="margin-bottom: 15px; border-left: 5px solid #e2b13c;">
-                        <button class="delete-post-btn" onclick="deleteDashboardPost('${post.id}')">Delete</button>
-                        <div class="scripture-card-header">${escapeHtml(post.title)}</div>
+                    <div class="announcement-card">
+                        <div class="announcement-card-header">
+                            <span class="announcement-title">${escapeHtml(post.title)}</span>
+                            <button class="delete-post-btn" onclick="deleteDashboardPost('${post.id}')">Delete</button>
+                        </div>
                         ${post.content ? `<div class="scripture-body" style="color: #333; margin-top: 5px;">${escapeHtml(post.content)}</div>` : ''}
                         ${mediaHtml}
                         <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">
