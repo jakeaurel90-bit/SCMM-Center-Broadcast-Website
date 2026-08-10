@@ -227,7 +227,7 @@
                 const cleanUrl = encodeURIComponent(fbMatch[0].replace(/[.,;!?)]$/, ''));
                 return `
                     <div class="video-container">
-                        <iframe src="https://www.facebook.com/plugins/video.php?href=${cleanUrl}&show_text=false&autoplay=1&allowfullscreen=true" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                        <iframe src="https://www.facebook.com/plugins/video.php?href=${cleanUrl}&show_text=false&width=560&autoplay=true&allowfullscreen=true" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                     </div>
                 `;
             }
@@ -257,7 +257,6 @@
                 return;
             }
 
-            // Prevent DOM re-rendering jitter if posts haven't changed
             const currentHash = JSON.stringify(posts);
             if (currentHash === lastRenderedPostsHash) return;
             lastRenderedPostsHash = currentHash;
