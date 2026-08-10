@@ -427,7 +427,7 @@
             background-color: var(--danger-red);
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 6px 14px;
             font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
@@ -872,7 +872,7 @@
                         <button onclick="createNewDashboardPost()">Publish Post with Media</button>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER WITH FULLY WORKING DELETE LOGIC -->
+                    <!-- LIVE POST FEED CONTAINER WITH FULLY BOUND EVENT LISTENERS -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -968,7 +968,7 @@
 
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">12:51:46 <span>PM</span></div>
+                        <div class="chronometer-readout-time" id="chrono-time">12:54:52 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -1112,8 +1112,10 @@
                 return;
             }
 
+            const uniqueId = 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
             const newPost = {
-                id: 'post_' + Date.now() + '_' + Math.random().toString(36.substring(2, 9)),
+                id: uniqueId,
                 title: title || 'Broadcast Media Attachment',
                 content: content,
                 mediaData: selectedMediaFileBase64,
@@ -1138,8 +1140,9 @@
 
         function deleteDashboardPost(postId) {
             let existingPosts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
-            existingPosts = existingPosts.filter(post => String(post.id) !== String(postId));
-            localStorage.setItem('scmm_dashboard_posts', JSON.stringify(existingPosts));
+            // Filter out the post whose ID matches
+            const filteredPosts = existingPosts.filter(post => post.id !== postId);
+            localStorage.setItem('scmm_dashboard_posts', JSON.stringify(filteredPosts));
             renderStoredPosts();
         }
 
@@ -1156,41 +1159,69 @@
                 return;
             }
 
-            container.innerHTML = posts.map(post => {
-                let mediaHtml = '';
-                if (post.mediaData) {
-                    if (post.mediaType === 'video') {
-                        mediaHtml = `
-                            <div class="post-media-container">
-                                <video controls src="${post.mediaData}"></video>
-                            </div>
-                        `;
-                    } else {
-                        mediaHtml = `
-                            <div class="post-media-container">
-                                <img src="${post.mediaData}" alt="Broadcast attachment">
-                            </div>
-                        `;
-                    }
+            container.innerHTML = '';
+
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'announcement-card';
+
+                const header = document.createElement('div');
+                header.className = 'announcement-card-header';
+
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'announcement-title';
+                titleSpan.textContent = post.title;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-post-btn';
+                deleteBtn.textContent = 'Delete';
+                
+                // Directly attach the functional click event listener using closure scope
+                deleteBtn.addEventListener('click', function() {
+                    deleteDashboardPost(post.id);
+                });
+
+                header.appendChild(titleSpan);
+                header.appendChild(deleteBtn);
+                card.appendChild(header);
+
+                if (post.content) {
+                    const body = document.createElement('div');
+                    body.className = 'scripture-body';
+                    body.style.color = '#333';
+                    body.style.marginTop = '5px';
+                    body.textContent = post.content;
+                    card.appendChild(body);
                 }
 
-                // Ensure every post has an id fallback if it was generated before IDs were added
-                const postId = post.id || ('legacy_' + Math.random().toString(36).substring(2, 9));
+                if (post.mediaData) {
+                    const mediaContainer = document.createElement('div');
+                    mediaContainer.className = 'post-media-container';
 
-                return `
-                    <div class="announcement-card">
-                        <div class="announcement-card-header">
-                            <span class="announcement-title">${escapeHtml(post.title)}</span>
-                            <button type="button" class="delete-post-btn" onclick="deleteDashboardPost('${postId}')">Delete</button>
-                        </div>
-                        ${post.content ? `<div class="scripture-body" style="color: #333; margin-top: 5px;">${escapeHtml(post.content)}</div>` : ''}
-                        ${mediaHtml}
-                        <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">
-                            Published: ${post.date}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                    if (post.mediaType === 'video') {
+                        const videoEl = document.createElement('video');
+                        videoEl.controls = true;
+                        videoEl.src = post.mediaData;
+                        mediaContainer.appendChild(videoEl);
+                    } else {
+                        const imgEl = document.createElement('img');
+                        imgEl.src = post.mediaData;
+                        imgEl.alt = 'Broadcast attachment';
+                        mediaContainer.appendChild(imgEl);
+                    }
+                    card.appendChild(mediaContainer);
+                }
+
+                const dateFooter = document.createElement('div');
+                dateFooter.style.fontSize = '10px';
+                dateFooter.style.color = '#888';
+                dateFooter.style.marginTop = '10px';
+                dateFooter.style.textTransform = 'uppercase';
+                dateFooter.textContent = 'Published: ' + post.date;
+                card.appendChild(dateFooter);
+
+                container.appendChild(card);
+            });
         }
 
         function escapeHtml(text) {
