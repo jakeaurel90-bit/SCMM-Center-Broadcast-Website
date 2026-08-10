@@ -120,6 +120,20 @@
             box-shadow: 0 6px 15px rgba(196,148,41,0.4);
         }
 
+        .login-box button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-error {
+            color: #ff8fa3;
+            font-size: 12px;
+            margin-top: -8px;
+            margin-bottom: 12px;
+            min-height: 14px;
+        }
+
         /* --- MAIN APPLICATION INTERFACE --- */
         #dashboard {
             display: flex;
@@ -128,7 +142,6 @@
             overflow: hidden;
         }
 
-        /* Left Sidebar Logo Pane */
         .sidebar-brand {
             width: 140px;
             background-color: var(--bg-dark-blue);
@@ -152,7 +165,6 @@
             letter-spacing: 1px;
         }
 
-        /* Main Workspace Panel */
         .main-workspace {
             flex: 1;
             display: flex;
@@ -161,7 +173,6 @@
             overflow-y: auto;
         }
 
-        /* Master Dashboard Navigation Header */
         header {
             background-color: var(--bg-dark-blue);
             padding: 15px 30px;
@@ -224,7 +235,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Dashboard Grid Layout Structure */
         .dashboard-grid {
             padding: 20px;
             display: grid;
@@ -239,7 +249,6 @@
             gap: 20px;
         }
 
-        /* Monthly Theme Banner Component */
         .theme-banner {
             background: linear-gradient(rgba(11, 37, 69, 0.4), rgba(11, 37, 69, 0.7)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover;
             border-radius: 12px;
@@ -282,7 +291,6 @@
             max-width: 400px;
         }
 
-        /* Dual Card Scripture Layout Container */
         .scripture-display-rack {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -320,7 +328,6 @@
             line-height: 1.5;
         }
 
-        /* Broadcast Live Engine Controller Console */
         .broadcast-console-module {
             background-color: var(--panel-blue);
             border-radius: 12px;
@@ -423,7 +430,6 @@
             z-index: 2;
         }
 
-        /* Actuator Trigger System Buttons */
         .actuator-action-deck {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -444,6 +450,10 @@
             justify-content: center;
             gap: 10px;
             transition: all 0.2s ease;
+        }
+
+        .btn-actuate:disabled {
+            opacity: 0.6;
         }
 
         .btn-actuate-trigger {
@@ -475,7 +485,6 @@
             background-color: var(--danger-red-hover);
         }
 
-        /* Telemetry Analytical Counters Panel */
         .telemetry-rack {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -511,7 +520,6 @@
             font-size: 11px;
         }
 
-        /* VU Audio Level Matrix Graphic Display */
         .vu-meter-grid-array {
             display: flex;
             gap: 3px;
@@ -528,7 +536,6 @@
             transition: height 0.15s ease;
         }
 
-        /* --- SYSTEM SIDEBAR TELEMETRY (RIGHT) --- */
         .system-status-sidebar {
             background-color: var(--panel-blue);
             border-left: 1px solid rgba(255,255,255,0.05);
@@ -549,7 +556,6 @@
             padding-bottom: 12px;
         }
 
-        /* Precision Chronometer Matrix (Real-Time Clock Component) */
         .chronometer-enclosure {
             border: 2px solid var(--accent-gold);
             border-radius: 10px;
@@ -593,7 +599,6 @@
             font-weight: bold;
         }
 
-        /* Health Parameter Monitoring Block */
         .health-mon-stack {
             display: flex;
             flex-direction: column;
@@ -633,6 +638,7 @@
 
         .status-positive { color: #00f5d4; }
         .status-nominal { color: #4cc9f0; }
+        .status-negative { color: #ff6b81; }
     </style>
 </head>
 <body>
@@ -645,26 +651,27 @@
             <h2>SCMM Media Login</h2>
             <p>Broadcast Control Center</p>
             <input type="text" id="username" placeholder="Username" autocomplete="off">
-            <input type="password" id="password" placeholder="Password">
-            <button onclick="evaluateAccessAuthentication()">Sign In</button>
+            <input type="password" id="password" placeholder="Password" autocomplete="off">
+            <div class="login-error" id="login-error"></div>
+            <button id="loginBtn" onclick="evaluateAccessAuthentication()">Sign In</button>
         </div>
     </div>
 
     <div id="dashboard" style="display:none;">
-        
+
         <aside class="sidebar-brand">
             <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="1.5">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
             <div class="brand-text">SCMM</div>
-            
+
             <a href="/admin/broadcast/post/add/" style="display: block; margin-top: 15px; color: #e2b13c; font-size: 10px; text-decoration: none; border: 1px solid #e2b13c; padding: 5px 8px; border-radius: 4px; text-transform: uppercase; cursor: pointer; text-align: center;">
                 + Add Post
             </a>
         </aside>
 
         <div class="main-workspace">
-            
+
             <header>
                 <div class="header-title-set">
                     <svg class="header-emblem" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="2">
@@ -684,9 +691,9 @@
             </header>
 
             <div class="dashboard-grid">
-                
+
                 <div class="left-column-group">
-                    
+
                     <div class="theme-banner">
                         <div class="theme-tag">This Month's Theme:</div>
                         <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
@@ -721,9 +728,9 @@
 
                     <div class="broadcast-console-module">
                         <div class="module-header-label">Live Streaming Control Panel</div>
-                        
+
                         <div class="stream-pipeline-matrix">
-                            
+
                             <div class="endpoint-node">
                                 <div class="endpoint-icon-frame">
                                     <svg width="24" height="24" fill="#3a86ff" viewBox="0 0 24 24">
@@ -777,12 +784,12 @@
 
                         <div class="telemetry-rack">
                             <div class="telemetry-well">
-                                <div class="telemetry-meta-label">FB VIEWERS <span>0</span></div>
+                                <div class="telemetry-meta-label">FB VIEWERS (EST.) <span>0</span></div>
                                 <div class="telemetry-value-output" id="telemetry-fb-val">0</div>
                                 <div class="telemetry-status-descriptor" id="telemetry-fb-desc">Stream in standby</div>
                             </div>
                             <div class="telemetry-well">
-                                <div class="telemetry-meta-label">YT VIEWERS <span>0</span></div>
+                                <div class="telemetry-meta-label">YT VIEWERS (EST.) <span>0</span></div>
                                 <div class="telemetry-value-output" id="telemetry-yt-val">0</div>
                                 <div class="telemetry-status-descriptor" id="telemetry-yt-desc">Stream in standby</div>
                             </div>
@@ -798,7 +805,7 @@
 
                 <aside class="system-status-sidebar">
                     <div class="sidebar-panel-header">System Status</div>
-                    
+
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">SUNDAY, JUNE 7, 2026</div>
                         <div class="chronometer-readout-time" id="chrono-time">07:34:00 <span>PM</span></div>
@@ -825,7 +832,7 @@
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
                                 API Integrations:
                             </div>
-                            <div class="health-mon-status-value status-positive">READY</div>
+                            <div class="health-mon-status-value status-positive" id="status-relay">READY</div>
                         </div>
                     </div>
 
@@ -837,7 +844,9 @@
     <script>
         let chronologicalTimeEngineId = null;
         let syntheticAudioTelemEngineId = null;
-        let hardwareVideoMediaStreamTrack = null;
+        let hardwareVideoMediaStreamTrack = null; // holds the MediaStream (video+audio)
+        let mediaRecorderInstance = null;
+        let relaySocket = null;
 
         const biblicalVersesArray = [
             { ref: "Philippians 4:13", text: "I can do all things through Christ who strengthens me." },
@@ -850,7 +859,7 @@
 
         const vuArrayTargetEnclosure = document.getElementById('vu-array');
         const processingTotalBarsCount = 18;
-        for(let idx=0; idx < processingTotalBarsCount; idx++) {
+        for (let idx = 0; idx < processingTotalBarsCount; idx++) {
             const barDomElement = document.createElement('div');
             barDomElement.className = 'vu-bar-element';
             vuArrayTargetEnclosure.appendChild(barDomElement);
@@ -861,12 +870,12 @@
                 const targetSystemDateObject = new Date();
                 const formattingCalendarOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 document.getElementById('chrono-date').innerText = targetSystemDateObject.toLocaleDateString('en-US', formattingCalendarOptions).toUpperCase();
-                
+
                 let systemCurrentHours = targetSystemDateObject.getHours();
                 const systemCurrentMinutes = String(targetSystemDateObject.getMinutes()).padStart(2, '0');
                 const systemCurrentSeconds = String(targetSystemDateObject.getSeconds()).padStart(2, '0');
                 const periodMeridiemMarker = systemCurrentHours >= 12 ? 'PM' : 'AM';
-                
+
                 systemCurrentHours = systemCurrentHours % 12;
                 systemCurrentHours = systemCurrentHours ? systemCurrentHours : 12;
                 const finalizedHoursString = String(systemCurrentHours).padStart(2, '0');
@@ -877,33 +886,68 @@
             chronologicalTimeEngineId = setInterval(constructChronometerTicks, 1000);
         }
 
-        // ABSOLUTE LOGIN MATCH VERIFICATION LOGIC
-        function evaluateAccessAuthentication() {
+        // ---------- Real server-side authentication ----------
+        async function evaluateAccessAuthentication() {
             const userInboundInput = document.getElementById('username').value.trim();
-            const passInboundInput = document.getElementById('password').value.trim();
+            const passInboundInput = document.getElementById('password').value;
+            const errorEl = document.getElementById('login-error');
+            const btn = document.getElementById('loginBtn');
+            errorEl.innerText = '';
+            btn.disabled = true;
 
-            if (userInboundInput === "SCMM" && passInboundInput === "admin123") {
-                // First: Switch layout visibility immediately so nothing freezes
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'flex';
-                
-                // Second: Securely initialize backend interface display states
-                initializeChronologicalTimeEngine();
-                selectRandomBiblicalScriptureAsset();
-                triggerHardwareCapturePreviewPipeline();
-            } else {
-                alert("Security Authorization Rejected: Invalid operational username or password.");
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: userInboundInput, password: passInboundInput })
+                });
+                if (!res.ok) {
+                    const body = await res.json().catch(() => ({}));
+                    errorEl.innerText = body.error || 'Sign in failed.';
+                    btn.disabled = false;
+                    return;
+                }
+                enterDashboard();
+            } catch (e) {
+                errorEl.innerText = 'Could not reach server.';
+                btn.disabled = false;
             }
         }
 
-        function executeInterfaceSessionTermination() {
-            if(hardwareVideoMediaStreamTrack) {
+        function enterDashboard() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'flex';
+            initializeChronologicalTimeEngine();
+            selectRandomBiblicalScriptureAsset();
+            triggerHardwareCapturePreviewPipeline();
+        }
+
+        async function checkExistingSession() {
+            try {
+                const res = await fetch('/api/session');
+                const body = await res.json();
+                if (body.authenticated) enterDashboard();
+            } catch (e) {
+                // server not reachable yet - stay on login screen
+            }
+        }
+        checkExistingSession();
+
+        async function executeInterfaceSessionTermination() {
+            if (relaySocket) {
+                try { relaySocket.send(JSON.stringify({ type: 'stop' })); relaySocket.close(); } catch (e) {}
+            }
+            if (mediaRecorderInstance && mediaRecorderInstance.state !== 'inactive') {
+                mediaRecorderInstance.stop();
+            }
+            if (hardwareVideoMediaStreamTrack) {
                 try {
                     hardwareVideoMediaStreamTrack.getTracks().forEach(track => track.stop());
-                } catch(e) {}
+                } catch (e) {}
             }
             clearInterval(chronologicalTimeEngineId);
             clearInterval(syntheticAudioTelemEngineId);
+            try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
             location.reload();
         }
 
@@ -916,68 +960,134 @@
 
         async function triggerHardwareCapturePreviewPipeline() {
             try {
-                const browserMediaStreamCapture = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                const browserMediaStreamCapture = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 hardwareVideoMediaStreamTrack = browserMediaStreamCapture;
                 const videoDomNode = document.getElementById('hw-camera-preview');
                 videoDomNode.srcObject = browserMediaStreamCapture;
                 videoDomNode.style.display = 'block';
                 document.getElementById('preview-icons').style.display = 'none';
             } catch (err) {
-                console.log("Local camera pipeline isolated or blocked. Reverting preview frame to graphics engine view mode safely.");
+                console.log("Camera/mic access blocked - cannot go live without it.", err);
+                document.getElementById('preview-text').innerText = "CAMERA/MIC ACCESS DENIED";
             }
         }
 
+        // ---------- Real streaming: capture -> WebSocket -> server -> ffmpeg -> RTMP ----------
+
         function engageUplinkStreamingSequence() {
-            document.getElementById('status-fb').innerText = "LIVE";
-            document.getElementById('status-fb').style.color = "#ff006e";
-            document.getElementById('status-yt').innerText = "LIVE";
-            document.getElementById('status-yt').style.color = "#ff006e";
-            
-            document.getElementById('preview-text').innerText = "BROADCAST TRANSMISSION ONLINE";
-            document.getElementById('preview-text').style.color = "#ff006e";
-            document.getElementById('video-canvas-container').style.borderColor = "#ff006e";
+            if (!hardwareVideoMediaStreamTrack) {
+                alert('No camera/microphone stream available. Grant permission and reload.');
+                return;
+            }
 
-            document.getElementById('telemetry-fb-desc').innerText = "Receiving outbound packet transmission";
-            document.getElementById('telemetry-yt-desc').innerText = "Receiving outbound packet transmission";
+            const wsProtocol = location.protocol === 'https:' ? 'wss' : 'ws';
+            relaySocket = new WebSocket(`${wsProtocol}://${location.host}/stream`);
+            relaySocket.binaryType = 'arraybuffer';
 
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('startBtn').className = "btn-actuate btn-actuate-kill";
-            document.getElementById('stopBtn').disabled = false;
-            document.getElementById('stopBtn').className = "btn-actuate btn-actuate-kill active-state";
+            document.getElementById('preview-text').innerText = "CONNECTING TO RELAY...";
 
+            relaySocket.onopen = () => {
+                relaySocket.send(JSON.stringify({ type: 'start' }));
+            };
+
+            relaySocket.onmessage = (event) => {
+                let data;
+                try { data = JSON.parse(event.data); } catch (e) { return; }
+
+                if (data.type === 'started') {
+                    beginLocalCapture();
+                    setLiveUiState(true);
+                } else if (data.type === 'error') {
+                    alert('Stream failed to start: ' + data.message);
+                    resetToStandby();
+                } else if (data.type === 'stopped') {
+                    resetToStandby();
+                }
+            };
+
+            relaySocket.onerror = () => {
+                alert('Could not connect to the streaming relay server.');
+                resetToStandby();
+            };
+
+            relaySocket.onclose = () => {
+                if (mediaRecorderInstance && mediaRecorderInstance.state !== 'inactive') {
+                    mediaRecorderInstance.stop();
+                }
+            };
+        }
+
+        function beginLocalCapture() {
+            const mimeCandidates = ['video/webm;codecs=vp8,opus', 'video/webm;codecs=vp9,opus', 'video/webm'];
+            const supportedMime = mimeCandidates.find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
+
+            mediaRecorderInstance = new MediaRecorder(hardwareVideoMediaStreamTrack, {
+                mimeType: supportedMime,
+                videoBitsPerSecond: 2500000
+            });
+
+            mediaRecorderInstance.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0 && relaySocket && relaySocket.readyState === WebSocket.OPEN) {
+                    e.data.arrayBuffer().then(buf => relaySocket.send(buf));
+                }
+            };
+
+            mediaRecorderInstance.start(250); // emit a chunk every 250ms
             executeAudioVUVisualSimulationEngine();
         }
 
         function terminateUplinkStreamingSequence() {
-            clearInterval(syntheticAudioTelemEngineId);
-            
-            document.getElementById('status-fb').innerText = "READY";
-            document.getElementById('status-fb').style.color = "#4cc9f0";
-            document.getElementById('status-yt').innerText = "READY";
-            document.getElementById('status-yt').style.color = "#4cc9f0";
+            if (relaySocket && relaySocket.readyState === WebSocket.OPEN) {
+                relaySocket.send(JSON.stringify({ type: 'stop' }));
+            }
+            if (mediaRecorderInstance && mediaRecorderInstance.state !== 'inactive') {
+                mediaRecorderInstance.stop();
+            }
+            resetToStandby();
+        }
 
-            document.getElementById('preview-text').innerText = "STREAM READY, PRESS START";
-            document.getElementById('preview-text').style.color = "var(--text-muted)";
-            document.getElementById('video-canvas-container').style.borderColor = "#1a437e";
+        function setLiveUiState(isLive) {
+            const color = isLive ? "#ff006e" : "#4cc9f0";
+            document.getElementById('status-fb').innerText = isLive ? "LIVE" : "READY";
+            document.getElementById('status-fb').style.color = color;
+            document.getElementById('status-yt').innerText = isLive ? "LIVE" : "READY";
+            document.getElementById('status-yt').style.color = color;
+
+            document.getElementById('preview-text').innerText = isLive ? "BROADCAST TRANSMISSION ONLINE" : "STREAM READY, PRESS START";
+            document.getElementById('preview-text').style.color = isLive ? "#ff006e" : "var(--text-muted)";
+            document.getElementById('video-canvas-container').style.borderColor = isLive ? "#ff006e" : "#1a437e";
+
+            document.getElementById('telemetry-fb-desc').innerText = isLive ? "Receiving outbound packet transmission" : "Stream in standby";
+            document.getElementById('telemetry-yt-desc').innerText = isLive ? "Receiving outbound packet transmission" : "Stream in standby";
+
+            document.getElementById('startBtn').disabled = isLive;
+            document.getElementById('startBtn').className = isLive ? "btn-actuate btn-actuate-kill" : "btn-actuate btn-actuate-trigger";
+            document.getElementById('stopBtn').disabled = !isLive;
+            document.getElementById('stopBtn').className = isLive ? "btn-actuate btn-actuate-kill active-state" : "btn-actuate btn-actuate-kill";
+        }
+
+        function resetToStandby() {
+            clearInterval(syntheticAudioTelemEngineId);
+            setLiveUiState(false);
 
             document.getElementById('telemetry-fb-val').innerText = "0";
             document.getElementById('telemetry-yt-val').innerText = "0";
             document.getElementById('telemetry-audio-val').innerText = "-inf";
-            document.getElementById('telemetry-fb-desc').innerText = "Stream in standby";
-            document.getElementById('telemetry-yt-desc').innerText = "Stream in standby";
-
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('startBtn').className = "btn-actuate btn-actuate-trigger";
-            document.getElementById('stopBtn').disabled = true;
-            document.getElementById('stopBtn').className = "btn-actuate btn-actuate-kill";
 
             const processingBarsCollection = document.querySelectorAll('.vu-bar-element');
             processingBarsCollection.forEach(bar => {
                 bar.style.height = '4px';
                 bar.style.backgroundColor = '#1a437e';
             });
+
+            relaySocket = null;
+            mediaRecorderInstance = null;
         }
 
+        // Viewer counts are NOT wired to real platform APIs yet (that needs OAuth
+        // against the YouTube Data API and Facebook Graph API with the live video ID).
+        // The video/audio feed itself IS real. This just animates the VU meter and
+        // shows an estimated-looking counter so the panel isn't static while live.
         function executeAudioVUVisualSimulationEngine() {
             syntheticAudioTelemEngineId = setInterval(() => {
                 const randomFbAudienceShift = Math.floor(Math.random() * 45) + 120;
@@ -992,7 +1102,7 @@
                 processingBarsCollection.forEach((barElement) => {
                     const structuralHeightFactor = Math.floor(Math.random() * 21) + 4;
                     barElement.style.height = `${structuralHeightFactor}px`;
-                    
+
                     if (structuralHeightFactor > 20) {
                         barElement.style.backgroundColor = '#ff006e';
                     } else if (structuralHeightFactor > 14) {
@@ -1010,9 +1120,9 @@
         <div style="margin-top: 10px; font-size: 0.85em;">
             <p><strong>About This Website:</strong></p>
             <p style="max-width: 600px; margin: 0 auto;">
-                The SCMM Live Media Center is a high-performance, real-time broadcasting hub 
-                designed to centralize live streams. Built with a dynamic architecture, 
-                it features seamless, non-reloading updates and an interactive 
+                The SCMM Live Media Center is a high-performance, real-time broadcasting hub
+                designed to centralize live streams. Built with a dynamic architecture,
+                it features seamless, non-reloading updates and an interactive
                 community comment system.
             </p>
         </div>

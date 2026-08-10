@@ -1,0 +1,19 @@
+{
+  "name": "scmm-stream-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SCMM Media Center - browser-to-RTMP relay server for simultaneous Facebook + YouTube Live streaming",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie": "^0.6.0",
+    "cookie-signature": "^1.2.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "ws": "^8.17.0"
+  }
+}
