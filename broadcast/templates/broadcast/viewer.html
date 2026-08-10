@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>SCMM Live Broadcast</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <!-- Firebase SDKs for real-time multi-device cloud synchronization -->
+    <!-- Firebase SDKs for real-time online multi-device cloud synchronization -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
@@ -77,7 +77,7 @@
 
         <div class="page-wrapper" style="margin-top: 20px;">
             <main>
-                <!-- Single Main Video Screen Player: Automatically reveals and embeds Facebook Live / video links strictly -->
+                <!-- Single Main Video Screen Player: Automatically reveals and embeds Facebook Live / video links online across all devices -->
                 <div class="stream-box" id="main-live-player-container">
                     <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                 </div>
@@ -86,7 +86,11 @@
             <aside id="update-container">
                 <div id="announcement-content">
                     <h3 style="color: var(--accent-gold); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Recent Broadcast Posts</h3>
-                    <div id="viewer-posts-feed"></div>
+                    <div id="viewer-posts-feed">
+                        <div class="post-card">
+                            <p style="color: #8da9c4; margin: 0;">Connecting to cloud broadcast stream...</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="comment-box">
@@ -97,7 +101,7 @@
     </div>
 
     <script>
-        // Initialize Firebase (Ensure keys match your admin index.html configuration)
+        // Initialize Firebase (Ensure these keys match your project credentials)
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -114,7 +118,6 @@
 
         function extractFacebookUrl(text) {
             if (!text) return null;
-            // Strictly check for Facebook video or live links only
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/)[^\s]+)/g;
             const fbMatch = text.match(fbRegex);
             if (fbMatch && fbMatch.length > 0) {
@@ -124,8 +127,8 @@
             return null;
         }
 
-        // Real-time Cloud Listener for Viewer Devices
-        function listenToCloudPostsForViewers() {
+        // Real-time Cloud Firestore Listener for Instant Multi-Device Sync
+        function listenToCloudPostsOnline() {
             db.collection("broadcast_posts").orderBy("createdAt", "desc")
               .onSnapshot((snapshot) => {
                   let posts = [];
@@ -133,15 +136,18 @@
                       posts.push({ id: doc.id, ...doc.data() });
                   });
                   
-                  // Save locally as cache and render instantly
-                  localStorage.setItem('scmm_dashboard_posts', JSON.stringify(posts));
-                  renderViewerPosts(posts);
+                  renderOnlineViewerPosts(posts);
               }, (error) => {
-                  console.error("Error listening to viewer posts:", error);
+                  console.error("Cloud synchronization error:", error);
+                  document.getElementById('viewer-posts-feed').innerHTML = `
+                      <div class="post-card">
+                          <p style="color: #ff6b81; margin: 0;">Cloud sync waiting for configuration.</p>
+                      </div>
+                  `;
               });
         }
 
-        function renderViewerPosts(posts) {
+        function renderOnlineViewerPosts(posts) {
             const feedContainer = document.getElementById('viewer-posts-feed');
             const mainPlayerContainer = document.getElementById('main-live-player-container');
 
@@ -150,7 +156,7 @@
             if (!posts || posts.length === 0) {
                 feedContainer.innerHTML = `
                     <div class="post-card">
-                        <p style="color: #8da9c4; margin: 0;">No announcements at this time.</p>
+                        <p style="color: #8da9c4; margin: 0;">No active broadcast announcements at this time.</p>
                     </div>
                 `;
                 const currentIframe = mainPlayerContainer.querySelector('iframe');
@@ -207,8 +213,8 @@
             return text.replace(/[&<>"']/g, m => map[m]);
         }
 
-        // Start real-time sync listener on viewer page load
-        listenToCloudPostsForViewers();
+        // Initialize live cloud synchronization on load
+        listenToCloudPostsOnline();
     </script>
 </body>
 </html>
