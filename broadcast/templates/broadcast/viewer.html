@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>SCMM Live Broadcast</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Firebase SDKs for real-time multi-device cloud synchronization -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         :root { --bg-dark-blue: #0b2545; --accent-gold: #e2b13c; --text-light: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark-blue); color: var(--text-light); margin: 0; padding: 20px; }
@@ -94,6 +97,21 @@
     </div>
 
     <script>
+        // Initialize Firebase (Ensure keys match your admin index.html configuration)
+        const firebaseConfig = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
         function extractFacebookUrl(text) {
             if (!text) return null;
             // Strictly check for Facebook video or live links only
@@ -106,14 +124,30 @@
             return null;
         }
 
-        function renderViewerPosts() {
+        // Real-time Cloud Listener for Viewer Devices
+        function listenToCloudPostsForViewers() {
+            db.collection("broadcast_posts").orderBy("createdAt", "desc")
+              .onSnapshot((snapshot) => {
+                  let posts = [];
+                  snapshot.forEach((doc) => {
+                      posts.push({ id: doc.id, ...doc.data() });
+                  });
+                  
+                  // Save locally as cache and render instantly
+                  localStorage.setItem('scmm_dashboard_posts', JSON.stringify(posts));
+                  renderViewerPosts(posts);
+              }, (error) => {
+                  console.error("Error listening to viewer posts:", error);
+              });
+        }
+
+        function renderViewerPosts(posts) {
             const feedContainer = document.getElementById('viewer-posts-feed');
             const mainPlayerContainer = document.getElementById('main-live-player-container');
-            const posts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
 
             let activeFacebookEmbedUrl = null;
 
-            if (posts.length === 0) {
+            if (!posts || posts.length === 0) {
                 feedContainer.innerHTML = `
                     <div class="post-card">
                         <p style="color: #8da9c4; margin: 0;">No announcements at this time.</p>
@@ -148,7 +182,7 @@
                         <h4>${escapeHtml(post.title)}</h4>
                         ${post.content ? `<p>${escapeHtml(post.content)}</p>` : ''}
                         ${mediaHtml}
-                        <div class="post-date">Published: ${post.date}</div>
+                        <div class="post-date">Published: ${post.date || 'Recent'}</div>
                     </div>
                 `;
             }).join('');
@@ -173,8 +207,8 @@
             return text.replace(/[&<>"']/g, m => map[m]);
         }
 
-        renderViewerPosts();
-        setInterval(renderViewerPosts, 2000);
+        // Start real-time sync listener on viewer page load
+        listenToCloudPostsForViewers();
     </script>
 </body>
 </html>

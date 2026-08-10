@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCMM Media Center Broadcast Dashboard</title>
+    <!-- Firebase SDKs for real-time multi-device cloud synchronization -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --bg-dark-blue: #0b2545;
@@ -663,7 +666,7 @@
                         <button onclick="createNewDashboardPost()">Publish Post</button>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER WITH FACEBOOK EMBED DETECTION -->
+                    <!-- LIVE POST FEED CONTAINER WITH CLOUD SYNC -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -710,7 +713,7 @@
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
                                 API Integrations:
                             </div>
-                            <div class="health-mon-status-value status-positive" id="status-relay">READY</div>
+                            <div class="health-mon-status-value status-positive" id="status-relay">ONLINE</div>
                         </div>
                     </div>
 
@@ -720,6 +723,21 @@
     </div>
 
     <script>
+        // Initialize Firebase (Replace these placeholder keys with your free Firebase project credentials)
+        const firebaseConfig = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
         let chronologicalTimeEngineId = null;
         let selectedMediaFileBase64 = null;
         let selectedMediaType = null;
@@ -785,7 +803,7 @@
             document.getElementById('operator-name').innerText = username || 'Operator';
             initializeChronologicalTimeEngine();
             selectRandomBiblicalScriptureAsset();
-            renderStoredPosts();
+            listenToCloudPosts();
         }
 
         function handleFileSelection(event) {
@@ -809,6 +827,7 @@
             reader.readAsDataURL(file);
         }
 
+        // Publish post directly to Cloud Firestore database for instant multi-device sync
         function createNewDashboardPost() {
             const titleInput = document.getElementById('new-post-title');
             const contentInput = document.getElementById('new-post-content');
@@ -822,37 +841,31 @@
                 return;
             }
 
-            const uniqueId = 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-
-            const newPost = {
-                id: uniqueId,
+            db.collection("broadcast_posts").add({
                 title: title || 'Broadcast Announcement',
                 content: content,
                 mediaData: selectedMediaFileBase64,
                 mediaType: selectedMediaType,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-            };
-
-            let existingPosts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
-            existingPosts.unshift(newPost);
-            localStorage.setItem('scmm_dashboard_posts', JSON.stringify(existingPosts));
-
-            // Reset inputs
-            titleInput.value = '';
-            contentInput.value = '';
-            document.getElementById('media-file-input').value = '';
-            selectedMediaFileBase64 = null;
-            selectedMediaType = null;
-            nameDisplay.innerText = 'No file selected';
-
-            renderStoredPosts();
+            }).then(() => {
+                titleInput.value = '';
+                contentInput.value = '';
+                document.getElementById('media-file-input').value = '';
+                selectedMediaFileBase64 = null;
+                selectedMediaType = null;
+                nameDisplay.innerText = 'No file selected';
+            }).catch((error) => {
+                console.error("Error adding post to cloud: ", error);
+                alert("Failed to publish post online. Check your cloud configuration.");
+            });
         }
 
+        // Delete post from cloud database
         function deleteDashboardPost(postId) {
-            let existingPosts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
-            const filteredPosts = existingPosts.filter(post => post.id !== postId);
-            localStorage.setItem('scmm_dashboard_posts', JSON.stringify(filteredPosts));
-            renderStoredPosts();
+            db.collection("broadcast_posts").doc(postId).delete().catch((error) => {
+                console.error("Error removing post: ", error);
+            });
         }
 
         // Helper function to detect and generate Facebook video/live iframe embeds
@@ -871,12 +884,28 @@
             return '';
         }
 
-        function renderStoredPosts() {
+        // Real-time Cloud Listener: instantly syncs and renders posts across any device
+        function listenToCloudPosts() {
+            db.collection("broadcast_posts").orderBy("createdAt", "desc")
+              .onSnapshot((snapshot) => {
+                  let posts = [];
+                  snapshot.forEach((doc) => {
+                      posts.push({ id: doc.id, ...doc.data() });
+                  });
+                  
+                  // Cache locally and update UI instantly
+                  localStorage.setItem('scmm_dashboard_posts', JSON.stringify(posts));
+                  renderStoredPosts(posts);
+              }, (error) => {
+                  console.error("Error listening to posts:", error);
+              });
+        }
+
+        function renderStoredPosts(posts) {
             const container = document.getElementById('posts-container');
             if (!container) return;
-            const posts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
 
-            if (posts.length === 0) {
+            if (!posts || posts.length === 0) {
                 container.innerHTML = `
                     <div class="announcement-card">
                         <div class="scripture-body" style="color: #666;">No active announcements. Use the panel above to publish announcements or Facebook live links.</div>
@@ -939,7 +968,7 @@
                 }
 
                 // Check if content or title has a Facebook Live / video link
-                const fbEmbedHtml = extractAndEmbedFacebookVideo(post.content + " " + post.title);
+                const fbEmbedHtml = extractAndEmbedFacebookVideo((post.content || "") + " " + (post.title || ""));
                 if (fbEmbedHtml) {
                     const fbContainer = document.createElement('div');
                     fbContainer.innerHTML = fbEmbedHtml;
@@ -951,7 +980,7 @@
                 dateFooter.style.color = '#888';
                 dateFooter.style.marginTop = '10px';
                 dateFooter.style.textTransform = 'uppercase';
-                dateFooter.textContent = 'Published: ' + post.date;
+                dateFooter.textContent = 'Published: ' + (post.date || 'Recent');
                 card.appendChild(dateFooter);
 
                 container.appendChild(card);
