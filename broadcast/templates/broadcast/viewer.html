@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SCMM Live Media Center - YouTube Dashboard</title>
+    <title>SCMM Live Media Center</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
         :root { --bg-dark-blue: #0b2545; --accent-gold: #e2b13c; --text-light: #ffffff; }
@@ -30,7 +30,7 @@
         }
 
         .page-wrapper { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-        .stream-box { background: #000; border-radius: 8px; overflow: hidden; min-height: 400px; width: 100%; border: 2px solid var(--accent-gold); margin-bottom: 20px; display: flex; flex-direction: column; }
+        .stream-box { background: #000; border-radius: 8px; overflow: hidden; min-height: 450px; width: 100%; border: 2px solid var(--accent-gold); margin-bottom: 20px; display: flex; flex-direction: column; }
         
         iframe { width: 100%; height: 100%; border: none; flex: 1; }
         #update-container { display: flex; flex-direction: column; gap: 20px; }
@@ -52,7 +52,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 style="text-align: center; color: var(--accent-gold);">SCMM YouTube Live Channel Hub</h1>
+        <h1 style="text-align: center; color: var(--accent-gold);">SCMM Live Broadcast</h1>
         
         <div class="verse-container">
             <div class="verse-overlay">
@@ -70,15 +70,14 @@
         </script>
 
         <div class="social-links">
-            <a href="viewers.html" class="social-btn">Main Live Hub</a>
             <a href="https://www.facebook.com/scmm.head.quarters" target="_blank" class="social-btn">Facebook</a>
-            <a href="https://www.youtube.com/@scmm" target="_blank" class="social-btn">YouTube Channel</a>
+            <a href="youtube_dashboard.html" class="social-btn">YouTube Channel Hub</a>
         </div>
 
         <div class="page-wrapper" style="margin-top: 20px;">
             <main>
-                <!-- Single Main YouTube Video / Live Player Screen (Automatically syncs YouTube links posted from the main dashboard) -->
-                <div class="stream-box" id="main-youtube-player-container">
+                <!-- Single Main Video Screen Player (Automatically plays Facebook Live or uploaded video/media links) -->
+                <div class="stream-box" id="main-live-player-container">
                     <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                 </div>
             </main>
@@ -87,7 +86,7 @@
                 <div id="announcement-content">
                     <h3 style="color: var(--accent-gold); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Recent Broadcast Posts</h3>
                     <div id="viewer-posts-feed">
-                        <!-- Posts dynamically injected here -->
+                        <!-- Posts injected here as text/images only, keeping the live video strictly on the single main screen -->
                     </div>
                 </div>
 
@@ -99,23 +98,27 @@
     </div>
 
     <script>
-        // Robust parser to extract YouTube video or live URLs (supports standard watch links and short youtu.be links)
-        function extractYouTubeUrl(text) {
+        function extractFacebookUrl(text) {
             if (!text) return null;
-            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
-            const match = ytRegex.exec(text);
-            if (match && match[1]) {
-                return `https://www.youtube.com/embed/${match[1]}?autoplay=1`;
+            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch)\/[^\s]+)/g;
+            const matches = text.match(fbRegex);
+            if (matches && matches.length > 0) {
+                return matches[0].replace(/[.,;!?)]$/, '');
             }
             return null;
         }
 
-        function renderYouTubeDashboardPosts() {
+        function getFacebookEmbedIframeHtml(url) {
+            const encodedUrl = encodeURIComponent(url);
+            return `<iframe src="https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&width=560&autoplay=true" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+        }
+
+        function renderViewerPosts() {
             const feedContainer = document.getElementById('viewer-posts-feed');
-            const mainPlayerContainer = document.getElementById('main-youtube-player-container');
+            const mainPlayerContainer = document.getElementById('main-live-player-container');
             const posts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
 
-            let latestYouTubeEmbedUrl = null;
+            let latestFacebookLiveUrl = null;
 
             if (posts.length === 0) {
                 feedContainer.innerHTML = `
@@ -123,6 +126,7 @@
                         <p style="color: #8da9c4; margin: 0;">No announcements at this time.</p>
                     </div>
                 `;
+                mainPlayerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
                 return;
             }
 
@@ -136,14 +140,14 @@
                     }
                 }
 
-                // Scan post title and content for a YouTube link
                 const fullText = (post.title || "") + " " + (post.content || "");
-                const detectedYtEmbed = extractYouTubeUrl(fullText);
+                const detectedFbUrl = extractFacebookUrl(fullText);
 
-                if (detectedYtEmbed && !latestYouTubeEmbedUrl) {
-                    latestYouTubeEmbedUrl = detectedYtEmbed;
+                if (detectedFbUrl && !latestFacebookLiveUrl) {
+                    latestFacebookLiveUrl = detectedFbUrl;
                 }
 
+                // Note: The second video iframe player inside the post card has been completely removed.
                 return `
                     <div class="post-card">
                         <h4>${escapeHtml(post.title)}</h4>
@@ -154,15 +158,15 @@
                 `;
             }).join('');
 
-            // Automatically sync the main top YouTube player screen with the newest YouTube link if posted
+            // Control the single main player screen at the top
             const currentIframe = mainPlayerContainer.querySelector('iframe');
             
-            if (latestYouTubeEmbedUrl) {
-                if (!currentIframe || !currentIframe.src.includes(latestYouTubeEmbedUrl.split('?')[0])) {
-                    mainPlayerContainer.innerHTML = `<iframe src="${latestYouTubeEmbedUrl}" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+            if (latestFacebookLiveUrl) {
+                if (!currentIframe || !currentIframe.src.includes(encodeURIComponent(latestFacebookLiveUrl))) {
+                    mainPlayerContainer.innerHTML = getFacebookEmbedIframeHtml(latestFacebookLiveUrl);
                 }
             } else {
-                if (!currentIframe || !currentIframe.src.includes('live_stream')) {
+                if (!currentIframe || !currentIframe.src.includes('youtube.com')) {
                     mainPlayerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
                 }
             }
@@ -174,8 +178,8 @@
             return text.replace(/[&<>"']/g, m => map[m]);
         }
 
-        renderYouTubeDashboardPosts();
-        setInterval(renderYouTubeDashboardPosts, 2500);
+        renderViewerPosts();
+        setInterval(renderViewerPosts, 2500);
     </script>
 </body>
 </html>
