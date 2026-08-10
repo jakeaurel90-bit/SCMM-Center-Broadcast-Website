@@ -33,7 +33,6 @@
         .announcement-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
         .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
         
-        /* Anti-Fluctuation Locked Video Container */
         .video-container {
             width: 100%;
             height: 380px;
@@ -91,7 +90,7 @@
                     </div>
                 </div>
                 <div class="header-user-actions">
-                    <div style="color: var(--accent-gold); font-size: 13px; font-weight: bold;">● LIVE FEED ONLINE</div>
+                    <div style="color: #4ade80; font-size: 13px; font-weight: bold;">● LIVE GLOBAL FEED ONLINE</div>
                 </div>
             </header>
 
@@ -103,7 +102,7 @@
                     </div>
 
                     <div id="viewer-posts-container">
-                        <div class="announcement-card"><div class="scripture-body" style="color: #666;">Waiting for live broadcasts...</div></div>
+                        <div class="announcement-card"><div class="scripture-body" style="color: #666;">Waiting for live global broadcasts...</div></div>
                     </div>
 
                     <div class="scripture-display-rack">
@@ -154,9 +153,27 @@
             setInterval(constructChronometerTicks, 1000);
         }
 
+        async function loadViewerPosts() {
+            const container = document.getElementById('viewer-posts-container');
+            if (!container) return;
+
+            try {
+                let response = await fetch('https://kvdb.io/5K8xJ5Zg5S88w5Zg5S88w5/scmm_posts');
+                if (!response.ok) {
+                    let local = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
+                    renderViewerPosts(local);
+                    return;
+                }
+                let posts = await response.json();
+                renderViewerPosts(posts);
+            } catch (e) {
+                let local = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
+                renderViewerPosts(local);
+            }
+        }
+
         function parseAndEmbedVideo(text) {
             if (!text) return '';
-
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
             const fbMatch = text.match(fbRegex);
             if (fbMatch) {
@@ -167,7 +184,6 @@
                     </div>
                 `;
             }
-
             const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
             const ytMatch = ytRegex.exec(text);
             if (ytMatch && ytMatch[1]) {
@@ -178,17 +194,14 @@
                     </div>
                 `;
             }
-
             return '';
         }
 
         let lastRenderedPostsHash = "";
 
-        function loadViewerPosts() {
+        function renderViewerPosts(posts) {
             const container = document.getElementById('viewer-posts-container');
             if (!container) return;
-            const posts = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
-
             if (!posts || posts.length === 0) {
                 container.innerHTML = `<div class="announcement-card"><div class="scripture-body" style="color: #666;">No active live broadcasts or announcements at the moment. Please check back soon.</div></div>`;
                 lastRenderedPostsHash = "";
@@ -203,9 +216,7 @@
             posts.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'announcement-card';
-                
                 const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""));
-
                 card.innerHTML = `
                     <div class="announcement-card-header">
                         <span class="announcement-title">${post.title}</span>
