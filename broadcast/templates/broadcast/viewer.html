@@ -41,15 +41,25 @@
             overflow: hidden;
             margin-top: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transform: translateZ(0);
-            backface-visibility: hidden;
-            contain: layout size style;
+            position: relative;
         }
         .video-container iframe {
             width: 100%;
             height: 100%;
             border: none;
             display: block;
+        }
+        .mobile-watch-btn {
+            display: block;
+            margin-top: 10px;
+            background-color: #1877f2;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 13px;
         }
 
         .scripture-display-rack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -178,11 +188,13 @@
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
             const fbMatch = text.match(fbRegex);
             if (fbMatch) {
-                const cleanUrl = encodeURIComponent(fbMatch[0].replace(/[.,;!?)]$/, ''));
+                const rawUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
+                const cleanUrl = encodeURIComponent(rawUrl);
                 return `
                     <div class="video-container">
                         <iframe src="https://www.facebook.com/plugins/video.php?href=${cleanUrl}&show_text=false&width=560&autoplay=true&allowfullscreen=true" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                     </div>
+                    <a href="${rawUrl}" target="_blank" class="mobile-watch-btn">▶ Watch Live on Facebook (If Mobile App Blocks Player)</a>
                 `;
             }
             const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
@@ -193,6 +205,7 @@
                     <div class="video-container">
                         <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&rel=0" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                     </div>
+                    <a href="https://www.youtube.com/watch?v=${ytId}" target="_blank" class="mobile-watch-btn" style="background-color: #ff0000;">▶ Watch Live on YouTube</a>
                 `;
             }
             return '';
