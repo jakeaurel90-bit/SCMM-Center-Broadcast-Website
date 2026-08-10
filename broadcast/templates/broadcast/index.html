@@ -280,57 +280,73 @@
             max-width: 400px;
         }
 
-        /* --- ADD POST FORM & MODAL / WIDGET --- */
-        .post-creation-card {
+        /* --- PROMINENT ADD POST FORM SECTION --- */
+        .post-creation-panel {
             background-color: var(--panel-blue);
             border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            padding: 25px;
+            border: 2px solid var(--accent-gold);
+            box-shadow: 0 4px 20px rgba(226, 177, 60, 0.15);
         }
 
-        .post-creation-card h3 {
-            color: var(--text-light);
-            font-size: 14px;
+        .post-creation-panel h3 {
+            color: var(--accent-gold);
+            font-size: 15px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .post-creation-card input,
-        .post-creation-card textarea {
+        .post-creation-panel input,
+        .post-creation-panel textarea {
             width: 100%;
-            padding: 10px 14px;
-            margin-bottom: 12px;
+            padding: 12px 16px;
+            margin-bottom: 15px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 6px;
             color: white;
-            font-size: 13px;
+            font-size: 14px;
             outline: none;
+            transition: border-color 0.2s;
         }
 
-        .post-creation-card input::placeholder,
-        .post-creation-card textarea::placeholder {
+        .post-creation-panel input:focus,
+        .post-creation-panel textarea:focus {
+            border-color: var(--accent-gold);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .post-creation-panel input::placeholder,
+        .post-creation-panel textarea::placeholder {
             color: rgba(255,255,255,0.5);
         }
 
-        .post-creation-card textarea {
+        .post-creation-panel textarea {
             resize: vertical;
-            height: 80px;
+            height: 90px;
         }
 
-        .post-creation-card button {
+        .post-creation-panel button {
             background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
             color: #111;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
             border-radius: 6px;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(196,148,41,0.3);
+            transition: transform 0.1s ease;
+        }
+
+        .post-creation-panel button:hover {
+            transform: translateY(-1px);
         }
 
         .scripture-display-rack {
@@ -737,14 +753,15 @@
                         <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
                     </div>
 
-                    <!-- ADD POST WIDGET RESTORED -->
-                    <div class="post-creation-card">
-                        <h3>+ Add Broadcast Announcement</h3>
-                        <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
-                        <textarea id="new-post-content" placeholder="Write broadcast message or details here..."></textarea>
-                        <button onclick="createNewDashboardPost()">Publish Post</button>
+                    <!-- PROMINENT ADD POST PANEL -->
+                    <div class="post-creation-panel">
+                        <h3>+ Create New Broadcast Announcement</h3>
+                        <input type="text" id="new-post-title" placeholder="Announcement Title (e.g., Sabbath Worship Schedule)..." autocomplete="off">
+                        <textarea id="new-post-content" placeholder="Type your broadcast announcement details here..."></textarea>
+                        <button onclick="createNewDashboardPost()">Publish Announcement</button>
                     </div>
 
+                    <!-- LIVE POST FEED CONTAINER -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -840,7 +857,7 @@
 
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">12:17:35 <span>PM</span></div>
+                        <div class="chronometer-readout-time" id="chrono-time">12:21:26 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -956,7 +973,7 @@
             const content = contentInput.value.trim();
 
             if (!title || !content) {
-                alert('Please provide both a title and content for the post.');
+                alert('Please enter both a title and content for the announcement.');
                 return;
             }
 
@@ -982,7 +999,7 @@
             if (posts.length === 0) {
                 container.innerHTML = `
                     <div class="scripture-card" style="margin-bottom: 15px;">
-                        <div class="scripture-body">No announcements at this time. Use the form above to add a post.</div>
+                        <div class="scripture-body" style="color: #666;">No active broadcast announcements. Use the panel above to publish one.</div>
                     </div>
                 `;
                 return;
@@ -993,7 +1010,7 @@
                     <div class="scripture-card-header">${escapeHtml(post.title)}</div>
                     <div class="scripture-body" style="color: #333; margin-top: 5px;">${escapeHtml(post.content)}</div>
                     <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">
-                        ${post.date}
+                        Published: ${post.date}
                     </div>
                 </div>
             `).join('');
