@@ -44,7 +44,27 @@
         .announcement-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
         .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
         .delete-post-btn { background-color: var(--danger-red); color: white; border: none; padding: 6px 14px; font-size: 11px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
-        .post-media-container { margin-top: 12px; border-radius: 8px; overflow: hidden; background: #000; }
+        
+        /* Widescreen Responsive Video Frame */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
         .scripture-display-rack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .scripture-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .scripture-card-header { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
@@ -97,7 +117,7 @@
                     <div class="post-creation-panel">
                         <h3>+ Create Online Broadcast Post</h3>
                         <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
-                        <textarea id="new-post-content" placeholder="Write details or paste Facebook video/live link here..."></textarea>
+                        <textarea id="new-post-content" placeholder="Write details or paste Facebook/YouTube video/live link here..."></textarea>
                         <button id="publishBtn" onclick="publishOnlinePost()">Publish to Cloud</button>
                     </div>
 
@@ -198,19 +218,34 @@
             fetchOnlinePosts();
         }
 
-        function extractAndEmbedFacebookVideo(text) {
+        function parseAndEmbedVideo(text) {
             if (!text) return '';
+
+            // 1. Check for Facebook Video / Live Link
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
-            const match = text.match(fbRegex);
-            if (match) {
-                const cleanUrl = match[0].replace(/[.,;!?)]$/, '');
+            const fbMatch = text.match(fbRegex);
+            if (fbMatch) {
+                const cleanUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
                 const fbUrl = encodeURIComponent(cleanUrl);
                 return `
-                    <div class="post-media-container" style="height: 315px; margin-top: 12px;">
-                        <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                    <div class="video-wrapper">
+                        <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                     </div>
                 `;
             }
+
+            // 2. Check for YouTube / YouTube Live Link
+            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
+            const ytMatch = ytRegex.exec(text);
+            if (ytMatch && ytMatch[1]) {
+                const ytId = ytMatch[1];
+                return `
+                    <div class="video-wrapper">
+                        <iframe src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                    </div>
+                `;
+            }
+
             return '';
         }
 
@@ -226,7 +261,7 @@
                 const card = document.createElement('div');
                 card.className = 'announcement-card';
                 
-                const videoEmbedHtml = extractAndEmbedFacebookVideo((post.content || "") + " " + (post.title || ""));
+                const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""));
 
                 card.innerHTML = `
                     <div class="announcement-card-header">
@@ -244,7 +279,7 @@
         window.onload = function() {
             initializeChronologicalTimeEngine();
             fetchOnlinePosts();
-            setInterval(fetchOnlinePosts, 3000); // Live sync polling
+            setInterval(fetchOnlinePosts, 3000);
         };
     </script>
 </body>
