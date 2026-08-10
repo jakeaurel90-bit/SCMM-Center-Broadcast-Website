@@ -76,7 +76,7 @@
 
         <div class="page-wrapper" style="margin-top: 20px;">
             <main>
-                <!-- Single Main Video Screen Player (Automatically plays Facebook Live or uploaded video/media links) -->
+                <!-- Single Main Video Screen Player (Automatically reveals and plays posted Facebook Live links) -->
                 <div class="stream-box" id="main-live-player-container">
                     <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                 </div>
@@ -86,7 +86,7 @@
                 <div id="announcement-content">
                     <h3 style="color: var(--accent-gold); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Recent Broadcast Posts</h3>
                     <div id="viewer-posts-feed">
-                        <!-- Posts injected here as text/images only, keeping the live video strictly on the single main screen -->
+                        <!-- Posts injected here as text/images only, while the live video link is revealed on the main screen player -->
                     </div>
                 </div>
 
@@ -147,7 +147,6 @@
                     latestFacebookLiveUrl = detectedFbUrl;
                 }
 
-                // Note: The second video iframe player inside the post card has been completely removed.
                 return `
                     <div class="post-card">
                         <h4>${escapeHtml(post.title)}</h4>
@@ -158,12 +157,13 @@
                 `;
             }).join('');
 
-            // Control the single main player screen at the top
+            // Automatically reveal and display the latest posted Facebook link on the single main screen player
             const currentIframe = mainPlayerContainer.querySelector('iframe');
             
             if (latestFacebookLiveUrl) {
+                const targetHtml = getFacebookEmbedIframeHtml(latestFacebookLiveUrl);
                 if (!currentIframe || !currentIframe.src.includes(encodeURIComponent(latestFacebookLiveUrl))) {
-                    mainPlayerContainer.innerHTML = getFacebookEmbedIframeHtml(latestFacebookLiveUrl);
+                    mainPlayerContainer.innerHTML = targetHtml;
                 }
             } else {
                 if (!currentIframe || !currentIframe.src.includes('youtube.com')) {
