@@ -1,1 +1,344 @@
-Add real-streaming dashboard
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCMM Media Center Broadcast Dashboard</title>
+    <style>
+        :root {
+            --bg-dark-blue: #0b2545;
+            --panel-blue: #13315c;
+            --accent-gold: #e2b13c;
+            --accent-gold-hover: #f3c653;
+            --text-light: #ffffff;
+            --text-muted: #8da9c4;
+            --danger-red: #8b2635;
+            --danger-red-hover: #a32c3f;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d2c54; color: #333; display: flex; min-height: 100vh; }
+        #dashboard { display: flex; width: 100%; min-height: 100vh; }
+        .sidebar-brand { width: 140px; background-color: var(--bg-dark-blue); display: flex; flex-direction: column; align-items: center; padding-top: 30px; border-right: 1px solid rgba(255,255,255,0.05); position: fixed; height: 100vh; }
+        .brand-logo { width: 70px; height: auto; margin-bottom: 10px; }
+        .brand-text { color: var(--text-light); font-weight: bold; font-size: 18px; letter-spacing: 1px; }
+        .main-workspace { margin-left: 140px; flex: 1; display: flex; flex-direction: column; background-color: #0d2c54; min-height: 100vh; }
+        header { background-color: var(--bg-dark-blue); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255, 255, 255, 0.05); }
+        .header-title-set { display: flex; align-items: center; gap: 15px; }
+        .header-emblem { width: 32px; height: 32px; }
+        .header-titles h2 { color: var(--text-muted); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
+        .header-titles h1 { color: var(--text-light); font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
+        .header-user-actions { display: flex; align-items: center; gap: 20px; }
+        .user-greeting { color: var(--text-light); font-size: 14px; }
+        .user-greeting span { color: var(--accent-gold); font-weight: bold; }
+        .dashboard-grid { padding: 20px; display: grid; grid-template-columns: 1fr 340px; gap: 20px; flex: 1; }
+        .left-column-group { display: flex; flex-direction: column; gap: 20px; }
+        .theme-banner { background: linear-gradient(rgba(11, 37, 69, 0.4), rgba(11, 37, 69, 0.7)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover; border-radius: 12px; height: 180px; padding: 30px; display: flex; flex-direction: column; justify-content: flex-end; border: 1px solid rgba(255,255,255,0.1); }
+        .theme-tag { color: var(--accent-gold); font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+        .theme-title { color: var(--text-light); font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: 0.5px; }
+        .post-creation-panel { background-color: var(--panel-blue); border-radius: 12px; padding: 25px; border: 2px solid var(--accent-gold); box-shadow: 0 4px 20px rgba(226, 177, 60, 0.15); }
+        .post-creation-panel h3 { color: var(--accent-gold); font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 15px; }
+        .post-creation-panel input, .post-creation-panel textarea { width: 100%; padding: 12px 16px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: white; font-size: 14px; outline: none; }
+        .post-creation-panel textarea { resize: vertical; height: 80px; }
+        .post-creation-panel button { width: 100%; background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%); color: #111; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .announcement-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-bottom: 15px; border-left: 5px solid #e2b13c; }
+        .announcement-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
+        .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
+        .delete-post-btn { background-color: var(--danger-red); color: white; border: none; padding: 6px 14px; font-size: 11px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
+        
+        .video-container {
+            width: 100%;
+            height: 380px;
+            background-color: #000000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        .mobile-watch-btn {
+            display: block;
+            margin-top: 10px;
+            background-color: #1877f2;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .scripture-display-rack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .scripture-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .scripture-card-header { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+        .scripture-reference { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); margin-bottom: 4px; }
+        .scripture-body { font-size: 13.5px; color: #444; line-height: 1.5; }
+        .system-status-sidebar { background-color: var(--panel-blue); border-left: 1px solid rgba(255,255,255,0.05); padding: 25px 20px; display: flex; flex-direction: column; gap: 25px; }
+        .sidebar-panel-header { color: var(--text-light); font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
+        .chronometer-enclosure { border: 2px solid var(--accent-gold); border-radius: 10px; padding: 15px; background: radial-gradient(circle at center, #112a4d 0%, #091930 100%); text-align: center; }
+        .chronometer-header-date { color: var(--accent-gold); font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+        .chronometer-readout-time { color: var(--text-light); font-size: 28px; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+        .chronometer-readout-time span { font-size: 16px; color: var(--text-muted); }
+        .chronometer-footer-location { color: var(--text-muted); font-size: 9px; text-transform: uppercase; margin-top: 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="dashboard">
+        <aside class="sidebar-brand">
+            <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="1.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <div class="brand-text">SCMM</div>
+        </aside>
+
+        <div class="main-workspace">
+            <header>
+                <div class="header-title-set">
+                    <svg class="header-emblem" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <div class="header-titles">
+                        <h2>South Central Mindanao Mission</h2>
+                        <h1>MEDIA CENTER BROADCAST DASHBOARD</h1>
+                    </div>
+                </div>
+                <div class="header-user-actions">
+                    <div class="user-greeting">Cloud Sync: <span style="color: #4ade80;">Global Online</span></div>
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <div class="left-column-group">
+                    <div class="theme-banner">
+                        <div class="theme-tag">This Month's Theme:</div>
+                        <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
+                    </div>
+
+                    <div class="post-creation-panel">
+                        <h3>+ Create Global Broadcast Post</h3>
+                        <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
+                        <textarea id="new-post-content" placeholder="Paste Facebook Live or YouTube Live link here..."></textarea>
+                        <button id="publishBtn" onclick="publishOnlinePost()">Publish Live Online</button>
+                    </div>
+
+                    <div id="posts-container">
+                        <div class="announcement-card"><div class="scripture-body" style="color: #666;">Syncing with global cloud...</div></div>
+                    </div>
+
+                    <div class="scripture-display-rack">
+                        <div class="scripture-card">
+                            <div class="scripture-card-header">Daily Memory Verse</div>
+                            <div class="scripture-reference">Philippians 4:13</div>
+                            <div class="scripture-body">"I can do all things through Christ who strengthens me."</div>
+                        </div>
+                        <div class="scripture-card">
+                            <div class="scripture-card-header">Sabbath Focus Devotional Quote</div>
+                            <div class="scripture-reference">Proverbs 16:3</div>
+                            <div class="scripture-body">"Commit your actions to the Lord, and your plans will succeed."</div>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="system-status-sidebar">
+                    <div class="sidebar-panel-header">System Status</div>
+                    <div class="chronometer-enclosure">
+                        <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
+                        <div class="chronometer-readout-time" id="chrono-time">1:05:16 <span>PM</span></div>
+                        <div class="chronometer-footer-location">Kidapawan City Time</div>
+                    </div>
+                </aside>
+            </div>
+            
+            <footer style="margin-top: 50px; padding: 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); color: #888; background-color: #0b2545;">
+                <p><strong>Developed by Francis Jake G. Aurel</strong> | Age: 24</p>
+                <p><a href="mailto:jakeaurel90@gmail.com" style="color: #e2b13c; text-decoration: none;">Contact: jakeaurel90@gmail.com</a></p>
+                <p style="margin-top: 15px;"><small>© 2026 SCMM Live Media Center</small></p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const CLOUD_BIN_URL = "https://api.npoint.io/7c37418b762c9535e98b";
+
+        function initializeChronologicalTimeEngine() {
+            function constructChronometerTicks() {
+                const targetSystemDateObject = new Date();
+                document.getElementById('chrono-date').innerText = targetSystemDateObject.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+                let hours = targetSystemDateObject.getHours();
+                const minutes = String(targetSystemDateObject.getMinutes()).padStart(2, '0');
+                const seconds = String(targetSystemDateObject.getSeconds()).padStart(2, '0');
+                const period = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12;
+                document.getElementById('chrono-time').innerHTML = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} <span>${period}</span>`;
+            }
+            constructChronometerTicks();
+            setInterval(constructChronometerTicks, 1000);
+        }
+
+        async function fetchOnlinePosts() {
+            try {
+                let response = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
+                if (response.ok) {
+                    let data = await response.json();
+                    let posts = Array.isArray(data) ? data : (data.posts || []);
+                    renderPosts(posts);
+                    localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
+                }
+            } catch (e) {
+                let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
+                renderPosts(local);
+            }
+        }
+
+        async function publishOnlinePost() {
+            const titleInput = document.getElementById('new-post-title');
+            const contentInput = document.getElementById('new-post-content');
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!title && !content) {
+                alert('Please provide text or a link to publish.');
+                return;
+            }
+
+            const newPost = {
+                id: Date.now().toString(),
+                title: title || 'Broadcast Announcement',
+                content: content,
+                date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            };
+
+            let currentPosts = [];
+            try {
+                let res = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
+                if (res.ok) {
+                    let data = await res.json();
+                    currentPosts = Array.isArray(data) ? data : (data.posts || []);
+                }
+            } catch(err) {
+                currentPosts = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
+            }
+
+            currentPosts.unshift(newPost);
+
+            try {
+                await fetch(CLOUD_BIN_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentPosts)
+                });
+            } catch(err) {}
+
+            localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(currentPosts));
+            titleInput.value = '';
+            contentInput.value = '';
+            renderPosts(currentPosts);
+            alert('Successfully published live online for all devices!');
+        }
+
+        async function deletePost(id) {
+            if (!confirm('Delete this announcement globally?')) return;
+            
+            let currentPosts = [];
+            try {
+                let res = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
+                if (res.ok) {
+                    let data = await res.json();
+                    currentPosts = Array.isArray(data) ? data : (data.posts || []);
+                }
+            } catch(err) {
+                currentPosts = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
+            }
+
+            currentPosts = currentPosts.filter(p => p.id !== id);
+
+            try {
+                await fetch(CLOUD_BIN_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentPosts)
+                });
+            } catch(err) {}
+
+            localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(currentPosts));
+            renderPosts(currentPosts);
+        }
+
+        function parseAndEmbedVideo(text) {
+            if (!text) return '';
+            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
+            const fbMatch = text.match(fbRegex);
+            if (fbMatch) {
+                const rawUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
+                const cleanUrl = encodeURIComponent(rawUrl);
+                return `
+                    <div class="video-container">
+                        <iframe src="https://www.facebook.com/plugins/video.php?href=${cleanUrl}&show_text=false&width=560&autoplay=true&allowfullscreen=true" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                    </div>
+                    <a href="${rawUrl}" target="_blank" class="mobile-watch-btn">▶ Watch Live on Facebook (If Mobile App Blocks Player)</a>
+                `;
+            }
+            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
+            const ytMatch = ytRegex.exec(text);
+            if (ytMatch && ytMatch[1]) {
+                const ytId = ytMatch[1];
+                return `
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&rel=0" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                    </div>
+                    <a href="https://www.youtube.com/watch?v=${ytId}" target="_blank" class="mobile-watch-btn" style="background-color: #ff0000;">▶ Watch Live on YouTube</a>
+                `;
+            }
+            return '';
+        }
+
+        let lastRenderedPostsHash = "";
+
+        function renderPosts(posts) {
+            const container = document.getElementById('posts-container');
+            if (!container) return;
+            if (!posts || posts.length === 0) {
+                container.innerHTML = `<div class="announcement-card"><div class="scripture-body" style="color: #666;">No active online announcements. Publish one above!</div></div>`;
+                lastRenderedPostsHash = "";
+                return;
+            }
+
+            const currentHash = JSON.stringify(posts);
+            if (currentHash === lastRenderedPostsHash) return;
+            lastRenderedPostsHash = currentHash;
+
+            container.innerHTML = '';
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'announcement-card';
+                const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""));
+                card.innerHTML = `
+                    <div class="announcement-card-header">
+                        <span class="announcement-title">${post.title}</span>
+                        <button class="delete-post-btn" onclick="deletePost('${post.id}')">Delete</button>
+                    </div>
+                    <div class="scripture-body" style="color: #333; margin-top: 5px;">${post.content}</div>
+                    ${videoEmbedHtml}
+                    <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">Published: ${post.date}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.onload = function() {
+            initializeChronologicalTimeEngine();
+            fetchOnlinePosts();
+            setInterval(fetchOnlinePosts, 3000);
+        };
+    </script>
+</body>
+</html>
