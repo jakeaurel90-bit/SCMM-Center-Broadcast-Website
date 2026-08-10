@@ -136,7 +136,7 @@
 
         /* --- MAIN APPLICATION INTERFACE --- */
         #dashboard {
-            display: flex;
+            display: none;
             width: 100%;
             height: 100vh;
             overflow: hidden;
@@ -814,7 +814,7 @@
         </div>
     </div>
 
-    <div id="dashboard" style="display:none;">
+    <div id="dashboard">
 
         <aside class="sidebar-brand">
             <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="1.5">
@@ -872,7 +872,7 @@
                         <button onclick="createNewDashboardPost()">Publish Post with Media</button>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER WITH FULLY BOUND EVENT LISTENERS -->
+                    <!-- LIVE POST FEED CONTAINER WITH FULLY FUNCTIONAL DELETE LOGIC -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -968,7 +968,7 @@
 
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">12:54:52 <span>PM</span></div>
+                        <div class="chronometer-readout-time" id="chrono-time">12:58:24 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -1065,13 +1065,18 @@
 
             setTimeout(() => {
                 enterDashboard(userInboundInput);
+                btn.disabled = false;
             }, 300);
         }
 
         function enterDashboard(username = 'Operator') {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'flex';
-            document.getElementById('operator-name').innerText = username;
+            const authScreen = document.getElementById('auth-screen');
+            const dashboard = document.getElementById('dashboard');
+            
+            if (authScreen) authScreen.style.display = 'none';
+            if (dashboard) dashboard.style.display = 'flex';
+            
+            document.getElementById('operator-name').innerText = username || 'Operator';
             initializeChronologicalTimeEngine();
             selectRandomBiblicalScriptureAsset();
             triggerHardwareCapturePreviewPipeline();
@@ -1140,7 +1145,6 @@
 
         function deleteDashboardPost(postId) {
             let existingPosts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
-            // Filter out the post whose ID matches
             const filteredPosts = existingPosts.filter(post => post.id !== postId);
             localStorage.setItem('scmm_dashboard_posts', JSON.stringify(filteredPosts));
             renderStoredPosts();
@@ -1148,6 +1152,7 @@
 
         function renderStoredPosts() {
             const container = document.getElementById('posts-container');
+            if (!container) return;
             const posts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
 
             if (posts.length === 0) {
@@ -1176,7 +1181,6 @@
                 deleteBtn.className = 'delete-post-btn';
                 deleteBtn.textContent = 'Delete';
                 
-                // Directly attach the functional click event listener using closure scope
                 deleteBtn.addEventListener('click', function() {
                     deleteDashboardPost(post.id);
                 });
@@ -1222,12 +1226,6 @@
 
                 container.appendChild(card);
             });
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return text.replace(/[&<>"']/g, m => map[m]);
         }
 
         async function executeInterfaceSessionTermination() {
