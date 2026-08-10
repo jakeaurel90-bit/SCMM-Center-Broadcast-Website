@@ -45,16 +45,18 @@
         .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
         .delete-post-btn { background-color: var(--danger-red); color: white; border: none; padding: 6px 14px; font-size: 11px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
         
-        /* Widescreen Responsive Video Frame */
+        /* Stable GPU-Accelerated Widescreen Video Frame (No Fluctuation) */
         .video-wrapper {
             position: relative;
             width: 100%;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-top: 56.25%; /* Fixed 16:9 Aspect Ratio */
             height: 0;
-            background: #000;
+            background-color: #000000;
             border-radius: 8px;
             overflow: hidden;
             margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transform: translateZ(0);
         }
         .video-wrapper iframe {
             position: absolute;
@@ -63,6 +65,7 @@
             width: 100%;
             height: 100%;
             border: none;
+            background-color: #000000;
         }
 
         .scripture-display-rack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -117,7 +120,7 @@
                     <div class="post-creation-panel">
                         <h3>+ Create Online Broadcast Post</h3>
                         <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
-                        <textarea id="new-post-content" placeholder="Write details or paste Facebook/YouTube video/live link here..."></textarea>
+                        <textarea id="new-post-content" placeholder="Write details or paste Facebook/YouTube video or live link here..."></textarea>
                         <button id="publishBtn" onclick="publishOnlinePost()">Publish to Cloud</button>
                     </div>
 
@@ -221,27 +224,26 @@
         function parseAndEmbedVideo(text) {
             if (!text) return '';
 
-            // 1. Check for Facebook Video / Live Link
+            // 1. Facebook Video / Live Link parser
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
             const fbMatch = text.match(fbRegex);
             if (fbMatch) {
-                const cleanUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
-                const fbUrl = encodeURIComponent(cleanUrl);
+                const cleanUrl = encodeURIComponent(fbMatch[0].replace(/[.,;!?)]$/, ''));
                 return `
                     <div class="video-wrapper">
-                        <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                        <iframe src="https://www.facebook.com/plugins/video.php?href=${cleanUrl}&show_text=false&width=560" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                     </div>
                 `;
             }
 
-            // 2. Check for YouTube / YouTube Live Link
+            // 2. YouTube / YouTube Live Link parser
             const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
             const ytMatch = ytRegex.exec(text);
             if (ytMatch && ytMatch[1]) {
                 const ytId = ytMatch[1];
                 return `
                     <div class="video-wrapper">
-                        <iframe src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                        <iframe src="https://www.youtube.com/embed/${ytId}?rel=0" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                     </div>
                 `;
             }
