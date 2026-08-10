@@ -434,6 +434,8 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.2s;
+            z-index: 10;
+            position: relative;
         }
 
         .delete-post-btn:hover {
@@ -870,7 +872,7 @@
                         <button onclick="createNewDashboardPost()">Publish Post with Media</button>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER WITH CLEAR DELETE BUTTONS -->
+                    <!-- LIVE POST FEED CONTAINER WITH FULLY WORKING DELETE LOGIC -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -966,7 +968,7 @@
 
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">12:47:05 <span>PM</span></div>
+                        <div class="chronometer-readout-time" id="chrono-time">12:51:46 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -1111,7 +1113,7 @@
             }
 
             const newPost = {
-                id: Date.now().toString(),
+                id: 'post_' + Date.now() + '_' + Math.random().toString(36.substring(2, 9)),
                 title: title || 'Broadcast Media Attachment',
                 content: content,
                 mediaData: selectedMediaFileBase64,
@@ -1136,7 +1138,7 @@
 
         function deleteDashboardPost(postId) {
             let existingPosts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
-            existingPosts = existingPosts.filter(post => post.id !== postId);
+            existingPosts = existingPosts.filter(post => String(post.id) !== String(postId));
             localStorage.setItem('scmm_dashboard_posts', JSON.stringify(existingPosts));
             renderStoredPosts();
         }
@@ -1172,11 +1174,14 @@
                     }
                 }
 
+                // Ensure every post has an id fallback if it was generated before IDs were added
+                const postId = post.id || ('legacy_' + Math.random().toString(36).substring(2, 9));
+
                 return `
                     <div class="announcement-card">
                         <div class="announcement-card-header">
                             <span class="announcement-title">${escapeHtml(post.title)}</span>
-                            <button class="delete-post-btn" onclick="deleteDashboardPost('${post.id}')">Delete</button>
+                            <button type="button" class="delete-post-btn" onclick="deleteDashboardPost('${postId}')">Delete</button>
                         </div>
                         ${post.content ? `<div class="scripture-body" style="color: #333; margin-top: 5px;">${escapeHtml(post.content)}</div>` : ''}
                         ${mediaHtml}
