@@ -395,6 +395,7 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            position: relative;
         }
 
         .scripture-card-header {
@@ -406,6 +407,7 @@
             margin-bottom: 12px;
             border-bottom: 1px solid #eee;
             padding-bottom: 6px;
+            padding-right: 60px; /* space for delete button */
         }
 
         .scripture-reference {
@@ -419,6 +421,27 @@
             font-size: 13.5px;
             color: #444;
             line-height: 1.5;
+        }
+
+        /* Delete button styling */
+        .delete-post-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--danger-red);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .delete-post-btn:hover {
+            background-color: var(--danger-red-hover);
         }
 
         /* Rendered media in posts */
@@ -827,7 +850,7 @@
                         <button onclick="createNewDashboardPost()">Publish Post with Media</button>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER -->
+                    <!-- LIVE POST FEED CONTAINER WITH DELETE BUTTONS -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -923,7 +946,7 @@
 
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">12:29:53 <span>PM</span></div>
+                        <div class="chronometer-readout-time" id="chrono-time">12:42:40 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -1068,6 +1091,7 @@
             }
 
             const newPost = {
+                id: Date.now().toString(),
                 title: title || 'Broadcast Media Attachment',
                 content: content,
                 mediaData: selectedMediaFileBase64,
@@ -1087,6 +1111,13 @@
             selectedMediaType = null;
             nameDisplay.innerText = 'No file selected';
 
+            renderStoredPosts();
+        }
+
+        function deleteDashboardPost(postId) {
+            let existingPosts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
+            existingPosts = existingPosts.filter(post => post.id !== postId);
+            localStorage.setItem('scmm_dashboard_posts', JSON.stringify(existingPosts));
             renderStoredPosts();
         }
 
@@ -1123,6 +1154,7 @@
 
                 return `
                     <div class="scripture-card" style="margin-bottom: 15px; border-left: 5px solid #e2b13c;">
+                        <button class="delete-post-btn" onclick="deleteDashboardPost('${post.id}')">Delete</button>
                         <div class="scripture-card-header">${escapeHtml(post.title)}</div>
                         ${post.content ? `<div class="scripture-body" style="color: #333; margin-top: 5px;">${escapeHtml(post.content)}</div>` : ''}
                         ${mediaHtml}
