@@ -138,6 +138,8 @@
     </div>
 
     <script>
+        const CLOUD_BIN_URL = "https://api.npoint.io/661a2b7ead19ca34f861";
+
         function initializeChronologicalTimeEngine() {
             function constructChronometerTicks() {
                 const targetSystemDateObject = new Date();
@@ -158,16 +160,17 @@
             if (!container) return;
 
             try {
-                let response = await fetch('https://kvdb.io/5K8xJ5Zg5S88w5Zg5S88w5/scmm_posts');
-                if (!response.ok) {
-                    let local = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
-                    renderViewerPosts(local);
-                    return;
+                let response = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
+                if (response.ok) {
+                    let data = await response.json();
+                    let posts = Array.isArray(data) ? data : (data.posts || []);
+                    renderViewerPosts(posts);
+                    localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
+                } else {
+                    throw new Error("Viewer fetch failed");
                 }
-                let posts = await response.json();
-                renderViewerPosts(posts);
             } catch (e) {
-                let local = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
+                let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
                 renderViewerPosts(local);
             }
         }
@@ -232,7 +235,7 @@
         window.onload = function() {
             initializeChronologicalTimeEngine();
             loadViewerPosts();
-            setInterval(loadViewerPosts, 2000);
+            setInterval(loadViewerPosts, 2000); // Polls global cloud every 2 seconds for all connected devices
         };
     </script>
 </body>

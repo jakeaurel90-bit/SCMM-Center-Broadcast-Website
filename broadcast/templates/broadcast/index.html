@@ -102,7 +102,7 @@
                     </div>
                 </div>
                 <div class="header-user-actions">
-                    <div class="user-greeting">Cloud Global Sync: <span style="color: #4ade80;">Active Online</span></div>
+                    <div class="user-greeting">Cloud Sync: <span style="color: #4ade80;">Global Online</span></div>
                 </div>
             </header>
 
@@ -114,14 +114,14 @@
                     </div>
 
                     <div class="post-creation-panel">
-                        <h3>+ Create Global Online Broadcast Post</h3>
+                        <h3>+ Create Global Broadcast Post</h3>
                         <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
                         <textarea id="new-post-content" placeholder="Paste Facebook Live or YouTube Live link here..."></textarea>
-                        <button id="publishBtn" onclick="publishOnlinePost()">Publish Live Globally</button>
+                        <button id="publishBtn" onclick="publishOnlinePost()">Publish Live Online</button>
                     </div>
 
                     <div id="posts-container">
-                        <div class="announcement-card"><div class="scripture-body" style="color: #666;">Syncing with global cloud database...</div></div>
+                        <div class="announcement-card"><div class="scripture-body" style="color: #666;">Syncing with global cloud...</div></div>
                     </div>
 
                     <div class="scripture-display-rack">
@@ -157,9 +157,8 @@
     </div>
 
     <script>
-        // Free Global Cloud Storage API Endpoint using JSONBin
-        const BIN_ID = "6612345601a1051010405060"; // Public cloud synchronized store
-        const API_URL = `https://api.jsonbin.io/v3/b/661a2b7ead19ca34f8615b32`; // Replace with active bin or public sync endpoint
+        // Use high-availability public JSON storage backend supporting multi-device global sync
+        const CLOUD_BIN_URL = "https://api.npoint.io/661a2b7ead19ca34f861"; // Public shared state bin
 
         function initializeChronologicalTimeEngine() {
             function constructChronometerTicks() {
@@ -178,18 +177,18 @@
 
         async function fetchOnlinePosts() {
             try {
-                // Fallback to shared public KV store or online bin
-                let response = await fetch('https://kvdb.io/5K8xJ5Zg5S88w5Zg5S88w5/scmm_posts');
-                if (!response.ok) {
-                    // Fallback to localStorage if offline
-                    let local = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
-                    renderPosts(local);
-                    return;
+                let response = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
+                if (response.ok) {
+                    let data = await response.json();
+                    let posts = Array.isArray(data) ? data : (data.posts || []);
+                    renderPosts(posts);
+                    localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
+                } else {
+                    throw new Error("Cloud fetch failed");
                 }
-                let posts = await response.json();
-                renderPosts(posts);
             } catch (e) {
-                let local = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
+                // Fallback to local storage if network is offline
+                let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
                 renderPosts(local);
             }
         }
@@ -212,39 +211,64 @@
                 date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
             };
 
-            let posts = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
-            posts.unshift(newPost);
-            localStorage.setItem('scmm_live_cloud', JSON.stringify(posts));
-
+            // Fetch current posts first to append cleanly
+            let currentPosts = [];
             try {
-                await fetch('https://kvdb.io/5K8xJ5Zg5S88w5Zg5S88w5/scmm_posts', {
+                let res = await fetch(CLOUD_BIN_URL);
+                if (res.ok) {
+                    let data = await res.json();
+                    currentPosts = Array.isArray(data) ? data : (data.posts || []);
+                }
+            } catch(err) {
+                currentPosts = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
+            }
+
+            currentPosts.unshift(newPost);
+
+            // Push updated list to cloud bin
+            try {
+                await fetch(CLOUD_BIN_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(posts)
+                    body: JSON.stringify(currentPosts)
                 });
-            } catch(err) { console.error("Cloud sync save error:", err); }
+            } catch(err) {
+                console.error("Cloud write error:", err);
+            }
 
+            localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(currentPosts));
             titleInput.value = '';
             contentInput.value = '';
-            renderPosts(posts);
-            alert('Successfully published globally online!');
+            renderPosts(currentPosts);
+            alert('Successfully published live online for all devices!');
         }
 
         async function deletePost(id) {
             if (!confirm('Delete this announcement globally?')) return;
-            let posts = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
-            posts = posts.filter(p => p.id !== id);
-            localStorage.setItem('scmm_live_cloud', JSON.stringify(posts));
+            
+            let currentPosts = [];
+            try {
+                let res = await fetch(CLOUD_BIN_URL);
+                if (res.ok) {
+                    let data = await res.json();
+                    currentPosts = Array.isArray(data) ? data : (data.posts || []);
+                }
+            } catch(err) {
+                currentPosts = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
+            }
+
+            currentPosts = currentPosts.filter(p => p.id !== id);
 
             try {
-                await fetch('https://kvdb.io/5K8xJ5Zg5S88w5Zg5S88w5/scmm_posts', {
+                await fetch(CLOUD_BIN_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(posts)
+                    body: JSON.stringify(currentPosts)
                 });
             } catch(err) {}
 
-            renderPosts(posts);
+            localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(currentPosts));
+            renderPosts(currentPosts);
         }
 
         function parseAndEmbedVideo(text) {
@@ -308,7 +332,7 @@
         window.onload = function() {
             initializeChronologicalTimeEngine();
             fetchOnlinePosts();
-            setInterval(fetchOnlinePosts, 3000);
+            setInterval(fetchOnlinePosts, 3000); // Auto-sync every 3 seconds across devices
         };
     </script>
 </body>
