@@ -666,7 +666,7 @@
                         <button onclick="createNewDashboardPost()">Publish Post</button>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER WITH ONLINE CLOUD SYNC -->
+                    <!-- LIVE POST FEED CONTAINER WITH PERMANENT CLOUD STORAGE -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -723,7 +723,7 @@
     </div>
 
     <script>
-        // Initialize Firebase (Replace these placeholder keys with your free Firebase project credentials)
+        // Initialize Firebase (Replace these keys with your free Firebase project credentials)
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -827,7 +827,7 @@
             reader.readAsDataURL(file);
         }
 
-        // Publish post directly to Cloud Firestore database for instant online broadcast
+        // Publish post permanently to Cloud Firestore database
         function createNewDashboardPost() {
             const titleInput = document.getElementById('new-post-title');
             const contentInput = document.getElementById('new-post-content');
@@ -861,7 +861,7 @@
             });
         }
 
-        // Delete post from cloud database
+        // Delete post from cloud database permanently
         function deleteDashboardPost(postId) {
             db.collection("broadcast_posts").doc(postId).delete().catch((error) => {
                 console.error("Error removing post: ", error);
@@ -871,10 +871,11 @@
         // Helper function to detect and generate Facebook video/live iframe embeds
         function extractAndEmbedFacebookVideo(text) {
             if (!text) return '';
-            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch)\/[^\s]+)/g;
+            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
             const match = text.match(fbRegex);
             if (match) {
-                const fbUrl = encodeURIComponent(match[0]);
+                const cleanUrl = match[0].replace(/[.,;!?)]$/, '');
+                const fbUrl = encodeURIComponent(cleanUrl);
                 return `
                     <div class="post-media-container" style="height: 315px; margin-top: 12px;">
                         <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>

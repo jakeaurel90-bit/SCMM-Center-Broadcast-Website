@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>SCMM Live Broadcast</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <!-- Firebase SDKs for real-time online multi-device cloud synchronization -->
+    <!-- Firebase SDKs for permanent online cloud database synchronization -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
@@ -77,7 +77,7 @@
 
         <div class="page-wrapper" style="margin-top: 20px;">
             <main>
-                <!-- Single Main Video Screen Player: Automatically reveals and embeds Facebook Live / video links online across all devices -->
+                <!-- Single Main Video Screen Player: Automatically displays Facebook Live / video links on the main screen -->
                 <div class="stream-box" id="main-live-player-container">
                     <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                 </div>
@@ -118,7 +118,7 @@
 
         function extractFacebookUrl(text) {
             if (!text) return null;
-            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/)[^\s]+)/g;
+            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
             const fbMatch = text.match(fbRegex);
             if (fbMatch && fbMatch.length > 0) {
                 const cleanUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
@@ -127,7 +127,7 @@
             return null;
         }
 
-        // Real-time Cloud Firestore Listener for Instant Online Multi-Device Sync
+        // Real-time Cloud Firestore Listener (Prevents data loss on reload and syncs globally)
         function listenToCloudPostsOnline() {
             db.collection("broadcast_posts").orderBy("createdAt", "desc")
               .onSnapshot((snapshot) => {
@@ -183,11 +183,21 @@
                     activeFacebookEmbedUrl = detectedFbUrl;
                 }
 
+                let fbEmbedHtml = '';
+                if (detectedFbUrl) {
+                    fbEmbedHtml = `
+                        <div class="post-media-container" style="height: 250px; margin-top: 10px;">
+                            <iframe src="${detectedFbUrl}" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                        </div>
+                    `;
+                }
+
                 return `
                     <div class="post-card">
                         <h4>${escapeHtml(post.title)}</h4>
                         ${post.content ? `<p>${escapeHtml(post.content)}</p>` : ''}
                         ${mediaHtml}
+                        ${fbEmbedHtml}
                         <div class="post-date">Published: ${post.date || 'Recent'}</div>
                     </div>
                 `;
