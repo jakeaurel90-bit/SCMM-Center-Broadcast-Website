@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SCMM YouTube Live Channel Hub</title>
+    <title>SCMM Live Media Center</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
         :root { --bg-dark-blue: #0b2545; --accent-gold: #e2b13c; --text-light: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark-blue); color: var(--text-light); margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
         
+        /* Daily Verse Styling */
         .verse-container {
             margin: 20px auto;
             padding: 40px;
@@ -34,6 +35,7 @@
         iframe { width: 100%; height: 100%; border: none; flex: 1; }
         #update-container { display: flex; flex-direction: column; gap: 20px; }
         
+        /* Navigation & Social Links */
         .social-links { display: flex; gap: 15px; justify-content: center; margin-top: 10px; }
         .social-btn { color: var(--accent-gold); font-weight: bold; text-decoration: none; padding: 8px 16px; border: 1px solid var(--accent-gold); border-radius: 4px; transition: 0.3s; cursor: pointer; background: none; font-size: 14px; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; }
         .social-btn:hover { background: var(--accent-gold); color: var(--bg-dark-blue); }
@@ -50,7 +52,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 style="text-align: center; color: var(--accent-gold);">SCMM YouTube Live Channel Hub</h1>
+        <h1 style="text-align: center; color: var(--accent-gold);">SCMM Live Broadcast</h1>
         
         <div class="verse-container">
             <div class="verse-overlay">
@@ -68,14 +70,14 @@
         </script>
 
         <div class="social-links">
-            <a href="index.html" class="social-btn">Main Live Hub</a>
-            <!-- Direct working hyperlink to your official YouTube channel -->
-            <a href="https://www.youtube.com/@scmm" target="_blank" rel="noopener noreferrer" class="social-btn">YouTube Channel Hub (@scmm)</a>
+            <a href="https://www.facebook.com/scmm.head.quarters" target="_blank" class="social-btn">Facebook</a>
+            <a href="youtube_dashboard.html" class="social-btn">YouTube Channel Hub</a>
         </div>
 
         <div class="page-wrapper" style="margin-top: 20px;">
             <main>
-                <div class="stream-box" id="main-youtube-player-container">
+                <!-- Single Main Video Screen Player: Automatically reveals and embeds Facebook Live / YouTube links posted from the main dashboard -->
+                <div class="stream-box" id="main-live-player-container">
                     <iframe src="https://www.youtube.com/embed/live_stream?channel=UCNTPk7KOO3J8ThjzGmuRk0Q" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                 </div>
             </main>
@@ -83,7 +85,9 @@
             <aside id="update-container">
                 <div id="announcement-content">
                     <h3 style="color: var(--accent-gold); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Recent Broadcast Posts</h3>
-                    <div id="viewer-posts-feed"></div>
+                    <div id="viewer-posts-feed">
+                        <!-- Posts injected here as text/images only, while any live video link is fully revealed and played on the single main screen player -->
+                    </div>
                 </div>
 
                 <div id="comment-box">
@@ -94,22 +98,39 @@
     </div>
 
     <script>
-        function extractYouTubeUrl(text) {
+        function extractVideoUrl(text) {
             if (!text) return null;
-            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
-            const match = ytRegex.exec(text);
-            if (match && match[1]) {
-                return `https://www.youtube.com/embed/${match[1]}?autoplay=1`;
+            
+            // Check for Facebook Live or video links first
+            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch)\/[^\s]+)/g;
+            const fbMatch = text.match(fbRegex);
+            if (fbMatch && fbMatch.length > 0) {
+                const cleanUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
+                return {
+                    type: 'facebook',
+                    url: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(cleanUrl)}&show_text=false&width=560&autoplay=true`
+                };
             }
+
+            // Check for YouTube video or live links
+            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
+            const ytMatch = ytRegex.exec(text);
+            if (ytMatch && ytMatch[1]) {
+                return {
+                    type: 'youtube',
+                    url: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`
+                };
+            }
+
             return null;
         }
 
-        function renderYouTubeDashboardPosts() {
+        function renderViewerPosts() {
             const feedContainer = document.getElementById('viewer-posts-feed');
-            const mainPlayerContainer = document.getElementById('main-youtube-player-container');
+            const mainPlayerContainer = document.getElementById('main-live-player-container');
             const posts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
 
-            let latestYouTubeEmbedUrl = null;
+            let activeVideoPayload = null;
 
             if (posts.length === 0) {
                 feedContainer.innerHTML = `
@@ -135,10 +156,11 @@
                 }
 
                 const fullText = (post.title || "") + " " + (post.content || "");
-                const detectedYtEmbed = extractYouTubeUrl(fullText);
+                const detectedVideo = extractVideoUrl(fullText);
 
-                if (detectedYtEmbed && !latestYouTubeEmbedUrl) {
-                    latestYouTubeEmbedUrl = detectedYtEmbed;
+                // Capture the first (latest) posted video/live link to display on the single main screen player
+                if (detectedVideo && !activeVideoPayload) {
+                    activeVideoPayload = detectedVideo;
                 }
 
                 return `
@@ -151,10 +173,12 @@
                 `;
             }).join('');
 
+            // Automatically reveal and sync the single main screen player with the latest posted video/live link
             const currentIframe = mainPlayerContainer.querySelector('iframe');
-            if (latestYouTubeEmbedUrl) {
-                if (!currentIframe || !currentIframe.src.includes(latestYouTubeEmbedUrl.split('?')[0])) {
-                    mainPlayerContainer.innerHTML = `<iframe src="${latestYouTubeEmbedUrl}" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+            
+            if (activeVideoPayload) {
+                if (!currentIframe || !currentIframe.src.includes(encodeURIComponent(activeVideoPayload.url.split('?')[0]))) {
+                    mainPlayerContainer.innerHTML = `<iframe src="${activeVideoPayload.url}" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
                 }
             } else {
                 if (!currentIframe || !currentIframe.src.includes('live_stream')) {
@@ -169,8 +193,8 @@
             return text.replace(/[&<>"']/g, m => map[m]);
         }
 
-        renderYouTubeDashboardPosts();
-        setInterval(renderYouTubeDashboardPosts, 2500);
+        renderViewerPosts();
+        setInterval(renderViewerPosts, 2500);
     </script>
 </body>
 </html>
