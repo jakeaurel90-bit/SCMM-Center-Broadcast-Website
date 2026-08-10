@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCMM Media Center Broadcast Dashboard</title>
-    <!-- Firebase SDKs for real-time multi-device cloud synchronization -->
+    <!-- Firebase SDKs for real-time online multi-device cloud synchronization -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
@@ -666,7 +666,7 @@
                         <button onclick="createNewDashboardPost()">Publish Post</button>
                     </div>
 
-                    <!-- LIVE POST FEED CONTAINER WITH CLOUD SYNC -->
+                    <!-- LIVE POST FEED CONTAINER WITH ONLINE CLOUD SYNC -->
                     <div id="posts-container"></div>
 
                     <div class="scripture-display-rack">
@@ -723,7 +723,7 @@
     </div>
 
     <script>
-        // Initialize Firebase (Replace these placeholder keys with your free Firebase project credentials)
+        // Initialize Firebase (Ensure these keys match your project credentials)
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -803,7 +803,7 @@
             document.getElementById('operator-name').innerText = username || 'Operator';
             initializeChronologicalTimeEngine();
             selectRandomBiblicalScriptureAsset();
-            listenToCloudPosts();
+            listenToCloudPostsAdmin();
         }
 
         function handleFileSelection(event) {
@@ -827,7 +827,7 @@
             reader.readAsDataURL(file);
         }
 
-        // Publish post directly to Cloud Firestore database for instant multi-device sync
+        // Publish post directly to Cloud Firestore database for instant online broadcast
         function createNewDashboardPost() {
             const titleInput = document.getElementById('new-post-title');
             const contentInput = document.getElementById('new-post-content');
@@ -884,8 +884,8 @@
             return '';
         }
 
-        // Real-time Cloud Listener: instantly syncs and renders posts across any device
-        function listenToCloudPosts() {
+        // Real-time Cloud Firestore Listener for Admin Dashboard
+        function listenToCloudPostsAdmin() {
             db.collection("broadcast_posts").orderBy("createdAt", "desc")
               .onSnapshot((snapshot) => {
                   let posts = [];
@@ -893,11 +893,9 @@
                       posts.push({ id: doc.id, ...doc.data() });
                   });
                   
-                  // Cache locally and update UI instantly
-                  localStorage.setItem('scmm_dashboard_posts', JSON.stringify(posts));
                   renderStoredPosts(posts);
               }, (error) => {
-                  console.error("Error listening to posts:", error);
+                  console.error("Cloud synchronization error:", error);
               });
         }
 
