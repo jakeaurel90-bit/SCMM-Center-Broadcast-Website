@@ -280,6 +280,59 @@
             max-width: 400px;
         }
 
+        /* --- ADD POST FORM & MODAL / WIDGET --- */
+        .post-creation-card {
+            background-color: var(--panel-blue);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .post-creation-card h3 {
+            color: var(--text-light);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .post-creation-card input,
+        .post-creation-card textarea {
+            width: 100%;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .post-creation-card input::placeholder,
+        .post-creation-card textarea::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .post-creation-card textarea {
+            resize: vertical;
+            height: 80px;
+        }
+
+        .post-creation-card button {
+            background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%);
+            color: #111;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .scripture-display-rack {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -684,6 +737,16 @@
                         <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
                     </div>
 
+                    <!-- ADD POST WIDGET RESTORED -->
+                    <div class="post-creation-card">
+                        <h3>+ Add Broadcast Announcement</h3>
+                        <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
+                        <textarea id="new-post-content" placeholder="Write broadcast message or details here..."></textarea>
+                        <button onclick="createNewDashboardPost()">Publish Post</button>
+                    </div>
+
+                    <div id="posts-container"></div>
+
                     <div class="scripture-display-rack">
                         <div class="scripture-card">
                             <div class="scripture-card-header">Daily Memory Verse</div>
@@ -777,7 +840,7 @@
 
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
-                        <div class="chronometer-readout-time" id="chrono-time">12:13:35 <span>PM</span></div>
+                        <div class="chronometer-readout-time" id="chrono-time">12:17:35 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
 
@@ -870,7 +933,6 @@
 
             btn.disabled = true;
 
-            // Direct local authentication override to bypass missing server routes
             setTimeout(() => {
                 enterDashboard(userInboundInput);
             }, 300);
@@ -883,6 +945,63 @@
             initializeChronologicalTimeEngine();
             selectRandomBiblicalScriptureAsset();
             triggerHardwareCapturePreviewPipeline();
+            renderStoredPosts();
+        }
+
+        function createNewDashboardPost() {
+            const titleInput = document.getElementById('new-post-title');
+            const contentInput = document.getElementById('new-post-content');
+            
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!title || !content) {
+                alert('Please provide both a title and content for the post.');
+                return;
+            }
+
+            const newPost = {
+                title: title,
+                content: content,
+                date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            };
+
+            let existingPosts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
+            existingPosts.unshift(newPost);
+            localStorage.setItem('scmm_dashboard_posts', JSON.stringify(existingPosts));
+
+            titleInput.value = '';
+            contentInput.value = '';
+            renderStoredPosts();
+        }
+
+        function renderStoredPosts() {
+            const container = document.getElementById('posts-container');
+            const posts = JSON.parse(localStorage.getItem('scmm_dashboard_posts') || '[]');
+
+            if (posts.length === 0) {
+                container.innerHTML = `
+                    <div class="scripture-card" style="margin-bottom: 15px;">
+                        <div class="scripture-body">No announcements at this time. Use the form above to add a post.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = posts.map(post => `
+                <div class="scripture-card" style="margin-bottom: 15px; border-left: 5px solid #e2b13c;">
+                    <div class="scripture-card-header">${escapeHtml(post.title)}</div>
+                    <div class="scripture-body" style="color: #333; margin-top: 5px;">${escapeHtml(post.content)}</div>
+                    <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">
+                        ${post.date}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
         }
 
         async function executeInterfaceSessionTermination() {
