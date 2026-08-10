@@ -44,6 +44,7 @@
         .announcement-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
         .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
         .delete-post-btn { background-color: var(--danger-red); color: white; border: none; padding: 6px 14px; font-size: 11px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
+        .post-media-container { margin-top: 12px; border-radius: 8px; overflow: hidden; background: #000; }
         .scripture-display-rack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .scripture-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .scripture-card-header { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
@@ -96,7 +97,7 @@
                     <div class="post-creation-panel">
                         <h3>+ Create Online Broadcast Post</h3>
                         <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
-                        <textarea id="new-post-content" placeholder="Write details or paste Facebook video link here..."></textarea>
+                        <textarea id="new-post-content" placeholder="Write details or paste Facebook video/live link here..."></textarea>
                         <button id="publishBtn" onclick="publishOnlinePost()">Publish to Cloud</button>
                     </div>
 
@@ -137,9 +138,6 @@
     </div>
 
     <script>
-        // Public server endpoint for zero-console cloud sync
-        const SYNC_URL = 'https://api.jsonbin.io/v3/b/663fef0ead19ca34f8664f33/latest';
-
         function initializeChronologicalTimeEngine() {
             function constructChronometerTicks() {
                 const targetSystemDateObject = new Date();
@@ -157,7 +155,6 @@
 
         async function fetchOnlinePosts() {
             try {
-                // Fallback to shared localStorage sync combined with online cache simulation
                 let posts = JSON.parse(localStorage.getItem('scmm_live_cloud') || '[]');
                 renderPosts(posts);
             } catch (e) {
@@ -201,6 +198,22 @@
             fetchOnlinePosts();
         }
 
+        function extractAndEmbedFacebookVideo(text) {
+            if (!text) return '';
+            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
+            const match = text.match(fbRegex);
+            if (match) {
+                const cleanUrl = match[0].replace(/[.,;!?)]$/, '');
+                const fbUrl = encodeURIComponent(cleanUrl);
+                return `
+                    <div class="post-media-container" style="height: 315px; margin-top: 12px;">
+                        <iframe src="https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&width=560" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
         function renderPosts(posts) {
             const container = document.getElementById('posts-container');
             if (!container) return;
@@ -212,12 +225,16 @@
             posts.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'announcement-card';
+                
+                const videoEmbedHtml = extractAndEmbedFacebookVideo((post.content || "") + " " + (post.title || ""));
+
                 card.innerHTML = `
                     <div class="announcement-card-header">
                         <span class="announcement-title">${post.title}</span>
                         <button class="delete-post-btn" onclick="deletePost('${post.id}')">Delete</button>
                     </div>
                     <div class="scripture-body" style="color: #333; margin-top: 5px;">${post.content}</div>
+                    ${videoEmbedHtml}
                     <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">Published: ${post.date}</div>
                 `;
                 container.appendChild(card);
