@@ -157,8 +157,7 @@
     </div>
 
     <script>
-        // Use high-availability public JSON storage backend supporting multi-device global sync
-        const CLOUD_BIN_URL = "https://api.npoint.io/661a2b7ead19ca34f861"; // Public shared state bin
+        const CLOUD_BIN_URL = "https://api.npoint.io/7c37418b762c9535e98b"; // Universal cross-device sync endpoint
 
         function initializeChronologicalTimeEngine() {
             function constructChronometerTicks() {
@@ -183,11 +182,8 @@
                     let posts = Array.isArray(data) ? data : (data.posts || []);
                     renderPosts(posts);
                     localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
-                } else {
-                    throw new Error("Cloud fetch failed");
                 }
             } catch (e) {
-                // Fallback to local storage if network is offline
                 let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
                 renderPosts(local);
             }
@@ -211,10 +207,9 @@
                 date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
             };
 
-            // Fetch current posts first to append cleanly
             let currentPosts = [];
             try {
-                let res = await fetch(CLOUD_BIN_URL);
+                let res = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
                 if (res.ok) {
                     let data = await res.json();
                     currentPosts = Array.isArray(data) ? data : (data.posts || []);
@@ -225,7 +220,6 @@
 
             currentPosts.unshift(newPost);
 
-            // Push updated list to cloud bin
             try {
                 await fetch(CLOUD_BIN_URL, {
                     method: 'POST',
@@ -248,7 +242,7 @@
             
             let currentPosts = [];
             try {
-                let res = await fetch(CLOUD_BIN_URL);
+                let res = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
                 if (res.ok) {
                     let data = await res.json();
                     currentPosts = Array.isArray(data) ? data : (data.posts || []);
@@ -332,7 +326,7 @@
         window.onload = function() {
             initializeChronologicalTimeEngine();
             fetchOnlinePosts();
-            setInterval(fetchOnlinePosts, 3000); // Auto-sync every 3 seconds across devices
+            setInterval(fetchOnlinePosts, 3000);
         };
     </script>
 </body>

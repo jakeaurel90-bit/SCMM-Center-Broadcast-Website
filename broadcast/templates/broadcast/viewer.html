@@ -138,7 +138,7 @@
     </div>
 
     <script>
-        const CLOUD_BIN_URL = "https://api.npoint.io/661a2b7ead19ca34f861";
+        const CLOUD_BIN_URL = "https://api.npoint.io/7c37418b762c9535e98b";
 
         function initializeChronologicalTimeEngine() {
             function constructChronometerTicks() {
@@ -166,8 +166,6 @@
                     let posts = Array.isArray(data) ? data : (data.posts || []);
                     renderViewerPosts(posts);
                     localStorage.setItem('scmm_live_cloud_backup', JSON.stringify(posts));
-                } else {
-                    throw new Error("Viewer fetch failed");
                 }
             } catch (e) {
                 let local = JSON.parse(localStorage.getItem('scmm_live_cloud_backup') || '[]');
@@ -235,7 +233,7 @@
         window.onload = function() {
             initializeChronologicalTimeEngine();
             loadViewerPosts();
-            setInterval(loadViewerPosts, 2000); // Polls global cloud every 2 seconds for all connected devices
+            setInterval(loadViewerPosts, 2000);
         };
     </script>
 </body>
