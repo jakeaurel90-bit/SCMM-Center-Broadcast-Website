@@ -4,36 +4,233 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCMM Live Media Center</title>
-    <!-- Add Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Keep your existing CSS here, but ensure it is at the top of the file */
-        :root { --bg-dark-blue: #0b2545; --panel-blue: #13315c; --accent-gold: #e2b13c; --text-light: #ffffff; }
-        body { background-color: #0d2c54; color: #333; margin: 0; font-family: 'Segoe UI', sans-serif; }
-        /* Add a loader style */
-        #loader { text-align: center; color: white; padding: 50px; }
+        :root {
+            --bg-dark-blue: #0b2545;
+            --panel-blue: #13315c;
+            --accent-gold: #e2b13c;
+            --text-light: #ffffff;
+            --text-muted: #8da9c4;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d2c54; color: #333; min-height: 100vh; }
+
+        #loader { text-align: center; color: white; padding: 80px 20px; font-size: 16px; letter-spacing: 1px; }
+
+        header { background-color: var(--bg-dark-blue); padding: 20px 30px; display: flex; align-items: center; gap: 15px; border-bottom: 2px solid rgba(255,255,255,0.05); }
+        .header-emblem { width: 36px; height: 36px; flex-shrink: 0; }
+        .header-titles h2 { color: var(--text-muted); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
+        .header-titles h1 { color: var(--text-light); font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
+
+        .viewer-body { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+        .theme-banner { background: linear-gradient(rgba(11, 37, 69, 0.4), rgba(11, 37, 69, 0.7)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover; border-radius: 12px; height: 180px; padding: 30px; display: flex; flex-direction: column; justify-content: flex-end; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .theme-tag { color: var(--accent-gold); font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+        .theme-title { color: var(--text-light); font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: 0.5px; }
+
+        .chronometer-enclosure { border: 2px solid var(--accent-gold); border-radius: 10px; padding: 15px; background: radial-gradient(circle at center, #112a4d 0%, #091930 100%); text-align: center; margin-bottom: 20px; }
+        .chronometer-header-date { color: var(--accent-gold); font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+        .chronometer-readout-time { color: var(--text-light); font-size: 26px; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+        .chronometer-readout-time span { font-size: 15px; color: var(--text-muted); }
+        .chronometer-footer-location { color: var(--text-muted); font-size: 9px; text-transform: uppercase; margin-top: 8px; font-weight: bold; }
+
+        .announcement-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-bottom: 15px; border-left: 5px solid #e2b13c; }
+        .announcement-card-header { border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
+        .announcement-title { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); text-transform: uppercase; }
+        .video-container { width: 100%; height: 340px; background-color: #000000; border-radius: 8px; overflow: hidden; margin-top: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .video-container iframe { width: 100%; height: 100%; border: none; display: block; }
+        .scripture-body { font-size: 13.5px; color: #444; line-height: 1.5; }
+
+        .scripture-display-rack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .scripture-card { background-color: var(--text-light); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .scripture-card-header { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+        .scripture-reference { font-size: 15px; font-weight: bold; color: var(--bg-dark-blue); margin-bottom: 4px; }
+
+        @media (max-width: 600px) {
+            .scripture-display-rack { grid-template-columns: 1fr; }
+        }
+
+        .sync-status { font-size: 10px; text-align: center; color: var(--text-muted); margin-top: 20px; padding-bottom: 20px; }
     </style>
 </head>
 <body>
     <div id="loader">Loading Live Broadcast...</div>
+
     <div id="viewer-container" style="display:none;">
-        <!-- ... Your original HTML body content goes here ... -->
+        <header>
+            <svg class="header-emblem" viewBox="0 0 24 24" fill="none" stroke="#e2b13c" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            <div class="header-titles">
+                <h2>South Central Mindanao Mission</h2>
+                <h1>LIVE MEDIA CENTER</h1>
+            </div>
+        </header>
+
+        <div class="viewer-body">
+            <div class="theme-banner">
+                <div class="theme-tag">This Month's Theme:</div>
+                <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
+            </div>
+
+            <div class="chronometer-enclosure">
+                <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
+                <div class="chronometer-readout-time" id="chrono-time">1:05:16 <span>PM</span></div>
+                <div class="chronometer-footer-location">Kidapawan City Time</div>
+            </div>
+
+            <div id="posts-container">
+                <div class="announcement-card"><div class="scripture-body" style="color: #666;">Loading announcements...</div></div>
+            </div>
+
+            <div class="scripture-display-rack">
+                <div class="scripture-card">
+                    <div class="scripture-card-header">Daily Memory Verse</div>
+                    <div class="scripture-reference">Philippians 4:13</div>
+                    <div class="scripture-body">"I can do all things through Christ who strengthens me."</div>
+                </div>
+                <div class="scripture-card">
+                    <div class="scripture-card-header">Sabbath Focus Devotional Quote</div>
+                    <div class="scripture-reference">Proverbs 16:3</div>
+                    <div class="scripture-body">"Commit your actions to the Lord, and your plans will succeed."</div>
+                </div>
+            </div>
+
+            <div class="sync-status" id="sync-status">Cloud sync: connecting...</div>
+        </div>
     </div>
 
     <script>
-        const CLOUD_BIN_URL = "https://api.npoint.io/7c37418b762c9535e98b";
+        // Same bin as the admin dashboard — read-only here, no Master Key needed.
+        // Make sure this bin is set to "Public" in your jsonbin.io settings so it can be read without a key.
+        const JSONBIN_ID = "6a7ae71af5f4af5e290659c6";
+        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
 
         window.onload = async function() {
-            // Hide loader and show content
             document.getElementById('loader').style.display = 'none';
             document.getElementById('viewer-container').style.display = 'block';
-            
+
             initializeChronologicalTimeEngine();
             await loadViewerPosts();
-            setInterval(loadViewerPosts, 5000); // Increased interval to 5s for better stability
+            setInterval(loadViewerPosts, 5000);
         };
 
-        // ... Keep your existing initializeChronologicalTimeEngine and parseAndEmbedVideo functions ...
+        function initializeChronologicalTimeEngine() {
+            function constructChronometerTicks() {
+                const targetSystemDateObject = new Date();
+                document.getElementById('chrono-date').innerText = targetSystemDateObject.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+                let hours = targetSystemDateObject.getHours();
+                const minutes = String(targetSystemDateObject.getMinutes()).padStart(2, '0');
+                const seconds = String(targetSystemDateObject.getSeconds()).padStart(2, '0');
+                const period = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12;
+                document.getElementById('chrono-time').innerHTML = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} <span>${period}</span>`;
+            }
+            constructChronometerTicks();
+            setInterval(constructChronometerTicks, 1000);
+        }
+
+        function setSyncStatus(text, ok) {
+            const el = document.getElementById('sync-status');
+            if (!el) return;
+            el.innerText = 'Cloud sync: ' + text;
+            el.style.color = ok ? '#8da9c4' : '#e2635f';
+        }
+
+        let lastRenderedPostsHash = "";
+
+        async function loadViewerPosts() {
+            try {
+                const response = await fetch(JSONBIN_URL + "?t=" + Date.now(), {
+                    headers: { "X-Bin-Meta": "false" },
+                    cache: "no-store"
+                });
+                if (!response.ok) throw new Error("status " + response.status);
+                const data = await response.json();
+                const posts = Array.isArray(data) ? data : [];
+                renderPosts(posts);
+                setSyncStatus("connected", true);
+            } catch (e) {
+                console.error("Cloud fetch failed:", e);
+                setSyncStatus("offline, retrying...", false);
+            }
+        }
+
+        function parseAndEmbedVideo(text) {
+            if (!text) return '';
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const match = text.match(urlRegex);
+            const directUrl = match ? match[0].replace(/[.,;!?)]$/, '') : '';
+
+            let mediaHtml = '';
+
+            const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
+            const fbMatch = text.match(fbRegex);
+            if (fbMatch) {
+                const rawUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
+                const cleanUrl = encodeURIComponent(rawUrl);
+                mediaHtml = `
+                    <div class="video-container">
+                        <iframe src="https://www.facebook.com/plugins/video.php?href=${cleanUrl}&show_text=false&width=560&autoplay=true&allowfullscreen=true" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                    </div>
+                `;
+            }
+
+            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
+            const ytMatch = ytRegex.exec(text);
+            if (ytMatch && ytMatch[1]) {
+                const ytId = ytMatch[1];
+                mediaHtml = `
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&rel=0" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                    </div>
+                `;
+            }
+
+            if (directUrl) {
+                mediaHtml += `
+                    <div style="margin-top: 12px; padding: 12px; background: #0b2545; border-radius: 6px; text-align: center;">
+                        <a href="${directUrl}" target="_blank" style="color: #e2b13c; font-weight: bold; text-decoration: none; font-size: 14px; word-break: break-all;">
+                            📱 Tap Here to Open Live Stream Directly: ${directUrl}
+                        </a>
+                    </div>
+                `;
+            }
+
+            return mediaHtml;
+        }
+
+        function renderPosts(posts) {
+            const container = document.getElementById('posts-container');
+            if (!container) return;
+            if (!posts || posts.length === 0) {
+                container.innerHTML = `<div class="announcement-card"><div class="scripture-body" style="color: #666;">No active broadcasts right now. Please check back soon.</div></div>`;
+                lastRenderedPostsHash = "";
+                return;
+            }
+
+            const currentHash = JSON.stringify(posts);
+            if (currentHash === lastRenderedPostsHash) return;
+            lastRenderedPostsHash = currentHash;
+
+            container.innerHTML = '';
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'announcement-card';
+                const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""));
+                card.innerHTML = `
+                    <div class="announcement-card-header">
+                        <span class="announcement-title">${post.title}</span>
+                    </div>
+                    <div class="scripture-body" style="color: #333; margin-top: 5px;">${post.content}</div>
+                    ${videoEmbedHtml}
+                    <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">Published: ${post.date}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
     </script>
 </body>
 </html>

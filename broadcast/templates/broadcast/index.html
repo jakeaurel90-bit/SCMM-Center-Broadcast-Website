@@ -59,6 +59,7 @@
         .chronometer-readout-time { color: var(--text-light); font-size: 28px; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
         .chronometer-readout-time span { font-size: 16px; color: var(--text-muted); }
         .chronometer-footer-location { color: var(--text-muted); font-size: 9px; text-transform: uppercase; margin-top: 8px; font-weight: bold; }
+        .sync-status { font-size: 10px; text-align: center; color: var(--text-muted); margin-top: -6px; }
     </style>
 </head>
 <body>
@@ -128,6 +129,7 @@
                         <div class="chronometer-readout-time" id="chrono-time">1:05:16 <span>PM</span></div>
                         <div class="chronometer-footer-location">Kidapawan City Time</div>
                     </div>
+                    <div class="sync-status" id="sync-status">Cloud sync: connecting...</div>
                 </aside>
             </div>
             
@@ -140,7 +142,15 @@
     </div>
 
     <script>
-        const CLOUD_BIN_URL = "https://api.npoint.io/7c37418b762c9535e98b";
+        // ======================================================================
+        // CLOUD SYNC CONFIG
+        // 1. Sign up free at https://jsonbin.io
+        // 2. Create a new bin with content: []
+        // 3. Paste your Bin ID and X-Master-Key below.
+        // ======================================================================
+        const JSONBIN_ID = "6a7ae71af5f4af5e290659c6";
+        const JSONBIN_MASTER_KEY = "$2a$10$Xn9O36gL4SyzMLxaFSge6.xdUe.KtDy5hH29EwXK.QQghnx1kZE72";
+        const JSONBIN_BASE_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
 
         window.onload = function() {
             if (sessionStorage.getItem('scmm_admin_logged') !== 'true') {
@@ -149,7 +159,7 @@
             }
             initializeChronologicalTimeEngine();
             fetchOnlinePosts();
-            setInterval(fetchOnlinePosts, 5000);
+            setInterval(fetchOnlinePosts, 8000);
         };
 
         function initializeChronologicalTimeEngine() {
@@ -167,16 +177,49 @@
             setInterval(constructChronometerTicks, 1000);
         }
 
+        function setSyncStatus(text, ok) {
+            const el = document.getElementById('sync-status');
+            if (!el) return;
+            el.innerText = 'Cloud sync: ' + text;
+            el.style.color = ok ? '#8da9c4' : '#e2635f';
+        }
+
+        // Fetch the current array of posts from JSONBin. Returns [] on any failure.
+        async function getPostsFromCloud() {
+            const response = await fetch(JSONBIN_BASE_URL + "/latest", {
+                method: "GET",
+                headers: {
+                    "X-Master-Key": JSONBIN_MASTER_KEY,
+                    "X-Bin-Meta": "false"
+                },
+                cache: "no-store"
+            });
+            if (!response.ok) throw new Error("Cloud read failed (" + response.status + ")");
+            const data = await response.json();
+            return Array.isArray(data) ? data : [];
+        }
+
+        // Overwrite the entire bin with a new array of posts.
+        async function savePostsToCloud(posts) {
+            const response = await fetch(JSONBIN_BASE_URL, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Master-Key": JSONBIN_MASTER_KEY
+                },
+                body: JSON.stringify(posts)
+            });
+            if (!response.ok) throw new Error("Cloud save failed (" + response.status + ")");
+        }
+
         async function fetchOnlinePosts() {
             try {
-                let response = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
-                if (response.ok) {
-                    let data = await response.json();
-                    let posts = Array.isArray(data) ? data : (data.posts || []);
-                    renderPosts(posts);
-                }
+                const posts = await getPostsFromCloud();
+                renderPosts(posts);
+                setSyncStatus("connected", true);
             } catch (e) {
-                console.error("Cloud fetch failed.");
+                console.error("Cloud fetch failed:", e);
+                setSyncStatus("offline (check Bin ID/Key)", false);
             }
         }
 
@@ -196,9 +239,7 @@
             publishBtn.innerText = "Syncing...";
 
             try {
-                let response = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
-                let currentPosts = response.ok ? await response.json() : [];
-                currentPosts = Array.isArray(currentPosts) ? currentPosts : (currentPosts.posts || []);
+                const currentPosts = await getPostsFromCloud();
 
                 const newPost = {
                     id: Date.now().toString(),
@@ -208,22 +249,13 @@
                 };
 
                 currentPosts.unshift(newPost);
+                await savePostsToCloud(currentPosts);
 
-                let updateRes = await fetch(CLOUD_BIN_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(currentPosts)
-                });
-
-                if (updateRes.ok) {
-                    titleInput.value = '';
-                    contentInput.value = '';
-                    fetchOnlinePosts();
-                    alert('Successfully published live online for all devices!');
-                } else {
-                    throw new Error("Failed to save to cloud.");
-                }
-            } catch(err) {
+                titleInput.value = '';
+                contentInput.value = '';
+                fetchOnlinePosts();
+                alert('Successfully published live online for all devices!');
+            } catch (err) {
                 alert('Error publishing post: ' + err.message);
             } finally {
                 publishBtn.disabled = false;
@@ -233,20 +265,14 @@
 
         async function deletePost(id) {
             if (!confirm('Delete this announcement globally?')) return;
-            
-            try {
-                let res = await fetch(CLOUD_BIN_URL + "?t=" + Date.now(), { cache: "no-store" });
-                let posts = res.ok ? await res.json() : [];
-                posts = (Array.isArray(posts) ? posts : (posts.posts || [])).filter(p => p.id !== id);
 
-                await fetch(CLOUD_BIN_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(posts)
-                });
+            try {
+                const posts = await getPostsFromCloud();
+                const filtered = posts.filter(p => p.id !== id);
+                await savePostsToCloud(filtered);
                 fetchOnlinePosts();
-            } catch(err) { 
-                alert("Delete failed."); 
+            } catch (err) {
+                alert("Delete failed: " + err.message);
             }
         }
 
