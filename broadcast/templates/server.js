@@ -2,8 +2,9 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
-// Your HTML files actually live in templates/broadcast, not next to server.js
-const PAGES_DIR = path.join(__dirname, 'templates', 'broadcast');
+// server.js lives in broadcast/templates/
+// The HTML pages actually live one folder deeper, in broadcast/templates/broadcast/
+const PAGES_DIR = path.join(__dirname, 'broadcast');
 
 // Serve static assets (CSS, JS, images) from that same folder
 app.use(express.static(PAGES_DIR));
