@@ -100,7 +100,16 @@
                     <div class="post-creation-panel">
                         <h3>+ Create Global Broadcast Post</h3>
                         <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
-                        <textarea id="new-post-content" placeholder="Paste Facebook Live or YouTube Live link here..."></textarea>
+                        <textarea id="new-post-content" placeholder="Paste Facebook Live or YouTube Live link here (optional)..."></textarea>
+
+                        <label style="display:block; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Upload Picture (optional)</label>
+                        <input type="file" id="new-post-image" accept="image/*" style="margin-bottom: 12px;">
+
+                        <label style="display:block; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Upload Video (optional)</label>
+                        <input type="file" id="new-post-video" accept="video/*" style="margin-bottom: 12px;">
+
+                        <div id="upload-progress" style="color: var(--accent-gold); font-size: 12px; margin-bottom: 10px; display:none;"></div>
+
                         <button id="publishBtn" onclick="publishOnlinePost()">Publish Live Online</button>
                     </div>
 
@@ -151,6 +160,30 @@
         const JSONBIN_ID = "6a7ae71af5f4af5e290659c6";
         const JSONBIN_MASTER_KEY = "$2a$10$Xn9O36gL4SyzMLxaFSge6.xdUe.KtDy5hH29EwXK.QQghnx1kZE72";
         const JSONBIN_BASE_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+
+        // ======================================================================
+        // MEDIA UPLOAD CONFIG (Cloudinary - free media hosting)
+        // 1. Sign up free at https://cloudinary.com
+        // 2. Copy your Cloud Name from the dashboard.
+        // 3. Settings > Upload > Add upload preset > Signing Mode: Unsigned. Copy its name.
+        // ======================================================================
+        const CLOUDINARY_CLOUD_NAME = "PASTE_YOUR_CLOUD_NAME_HERE";
+        const CLOUDINARY_UPLOAD_PRESET = "PASTE_YOUR_UPLOAD_PRESET_HERE";
+
+        async function uploadToCloudinary(file, resourceType) {
+            const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            const response = await fetch(url, { method: 'POST', body: formData });
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Upload failed: ${errText}`);
+            }
+            const data = await response.json();
+            return data.secure_url;
+        }
 
         window.onload = function() {
             if (sessionStorage.getItem('scmm_admin_logged') !== 'true') {
@@ -226,25 +259,48 @@
         async function publishOnlinePost() {
             const titleInput = document.getElementById('new-post-title');
             const contentInput = document.getElementById('new-post-content');
+            const imageInput = document.getElementById('new-post-image');
+            const videoInput = document.getElementById('new-post-video');
             const publishBtn = document.getElementById('publishBtn');
+            const progressEl = document.getElementById('upload-progress');
+
             const title = titleInput.value.trim();
             const content = contentInput.value.trim();
+            const imageFile = imageInput.files[0];
+            const videoFile = videoInput.files[0];
 
-            if (!title && !content) {
-                alert('Please provide text or a link to publish.');
+            if (!title && !content && !imageFile && !videoFile) {
+                alert('Please provide text, a link, a picture, or a video to publish.');
                 return;
             }
 
             publishBtn.disabled = true;
-            publishBtn.innerText = "Syncing...";
+            publishBtn.innerText = "Publishing...";
+            progressEl.style.display = 'block';
 
             try {
+                let imageUrl = '';
+                let videoUrl = '';
+
+                if (imageFile) {
+                    progressEl.innerText = 'Uploading picture...';
+                    imageUrl = await uploadToCloudinary(imageFile, 'image');
+                }
+
+                if (videoFile) {
+                    progressEl.innerText = 'Uploading video (this can take a moment)...';
+                    videoUrl = await uploadToCloudinary(videoFile, 'video');
+                }
+
+                progressEl.innerText = 'Saving post...';
                 const currentPosts = await getPostsFromCloud();
 
                 const newPost = {
                     id: Date.now().toString(),
                     title: title || 'Broadcast Announcement',
                     content: content,
+                    imageUrl: imageUrl,
+                    videoUrl: videoUrl,
                     date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
                 };
 
@@ -253,6 +309,8 @@
 
                 titleInput.value = '';
                 contentInput.value = '';
+                imageInput.value = '';
+                videoInput.value = '';
                 fetchOnlinePosts();
                 alert('Successfully published live online for all devices!');
             } catch (err) {
@@ -260,6 +318,7 @@
             } finally {
                 publishBtn.disabled = false;
                 publishBtn.innerText = "Publish Live Online";
+                progressEl.style.display = 'none';
             }
         }
 
@@ -340,6 +399,17 @@
                 const card = document.createElement('div');
                 card.className = 'announcement-card';
                 const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""));
+
+                let uploadedImageHtml = '';
+                if (post.imageUrl) {
+                    uploadedImageHtml = `<img src="${post.imageUrl}" style="width:100%; border-radius:8px; margin-top:12px; display:block;" alt="Post image">`;
+                }
+
+                let uploadedVideoHtml = '';
+                if (post.videoUrl) {
+                    uploadedVideoHtml = `<video controls style="width:100%; border-radius:8px; margin-top:12px; display:block; background:#000;"><source src="${post.videoUrl}"></video>`;
+                }
+
                 card.innerHTML = `
                     <div class="announcement-card-header">
                         <span class="announcement-title">${post.title}</span>
@@ -347,6 +417,8 @@
                     </div>
                     <div class="scripture-body" style="color: #333; margin-top: 5px;">${post.content}</div>
                     ${videoEmbedHtml}
+                    ${uploadedImageHtml}
+                    ${uploadedVideoHtml}
                     <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">Published: ${post.date}</div>
                 `;
                 container.appendChild(card);

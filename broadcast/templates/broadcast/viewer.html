@@ -51,6 +51,18 @@
         }
 
         .sync-status { font-size: 10px; text-align: center; color: var(--text-muted); margin-top: 20px; padding-bottom: 20px; }
+
+        .comment-wall { background-color: var(--panel-blue); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08); }
+        .comment-wall-header { color: var(--accent-gold); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+        .comment-form input, .comment-form textarea { width: 100%; padding: 10px 14px; margin-bottom: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-size: 13px; outline: none; }
+        .comment-form textarea { resize: vertical; height: 60px; }
+        .comment-form button { background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%); color: #111; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .comment-form button:disabled { background: #666; cursor: not-allowed; }
+        #comments-list { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; }
+        .comment-item { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 10px 14px; }
+        .comment-item .comment-name { color: var(--accent-gold); font-weight: bold; font-size: 12px; }
+        .comment-item .comment-text { color: var(--text-light); font-size: 13px; margin-top: 3px; line-height: 1.4; }
+        .comment-item .comment-date { color: var(--text-muted); font-size: 10px; margin-top: 4px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -83,6 +95,16 @@
 
             <div id="posts-container">
                 <div class="announcement-card"><div class="scripture-body" style="color: #666;">Loading announcements...</div></div>
+            </div>
+
+            <div class="comment-wall">
+                <h3 class="comment-wall-header">💬 Viewer Comments</h3>
+                <div class="comment-form">
+                    <input type="text" id="comment-name" placeholder="Your Name" autocomplete="off" maxlength="60">
+                    <textarea id="comment-text" placeholder="Write a comment..." maxlength="500"></textarea>
+                    <button id="commentBtn" onclick="submitComment()">Post Comment</button>
+                </div>
+                <div id="comments-list"></div>
             </div>
 
             <div class="scripture-display-rack">
@@ -220,12 +242,25 @@
                 const card = document.createElement('div');
                 card.className = 'announcement-card';
                 const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""));
+
+                let uploadedImageHtml = '';
+                if (post.imageUrl) {
+                    uploadedImageHtml = `<img src="${post.imageUrl}" style="width:100%; border-radius:8px; margin-top:12px; display:block;" alt="Post image">`;
+                }
+
+                let uploadedVideoHtml = '';
+                if (post.videoUrl) {
+                    uploadedVideoHtml = `<video controls style="width:100%; border-radius:8px; margin-top:12px; display:block; background:#000;"><source src="${post.videoUrl}"></video>`;
+                }
+
                 card.innerHTML = `
                     <div class="announcement-card-header">
                         <span class="announcement-title">${post.title}</span>
                     </div>
                     <div class="scripture-body" style="color: #333; margin-top: 5px;">${post.content}</div>
                     ${videoEmbedHtml}
+                    ${uploadedImageHtml}
+                    ${uploadedVideoHtml}
                     <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">Published: ${post.date}</div>
                 `;
                 container.appendChild(card);
