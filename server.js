@@ -2,10 +2,10 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
-// Serve all files (HTML, CSS, JS) from the current directory
+// Serve static assets (CSS, JS, images) from root
 app.use(express.static(__dirname));
 
-// Specifically handle the routes to map to your HTML files
+// Route handlers
 app.get(['/', '/viewer', '/live', '/LIVE', '/viewer.html'], (req, res) => {
     res.sendFile(path.join(__dirname, 'viewer.html'));
 });
