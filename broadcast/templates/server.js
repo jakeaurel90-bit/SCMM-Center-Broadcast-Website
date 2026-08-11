@@ -23,7 +23,8 @@ app.get(['/index', '/index.html', '/admin'], (req, res) => {
 });
 
 app.get(['/logout', '/logout.html'], (req, res) => {
-    res.sendFile(path.join(PAGES_DIR, 'logout.html'));
+    // logout.html sits next to server.js, not inside the broadcast/ pages folder
+    res.sendFile(path.join(__dirname, 'logout.html'));
 });
 
 const PORT = process.env.PORT || 3000;
