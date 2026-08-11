@@ -11,6 +11,7 @@
             --accent-gold: #e2b13c;
             --text-light: #ffffff;
             --text-muted: #8da9c4;
+            --danger-red: #8b2635;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0d2c54; color: #333; min-height: 100vh; }
@@ -63,6 +64,11 @@
         .comment-item .comment-name { color: var(--accent-gold); font-weight: bold; font-size: 12px; }
         .comment-item .comment-text { color: var(--text-light); font-size: 13px; margin-top: 3px; line-height: 1.4; }
         .comment-item .comment-date { color: var(--text-muted); font-size: 10px; margin-top: 4px; text-transform: uppercase; }
+        .comment-delete-btn { background-color: var(--danger-red, #8b2635); color: white; border: none; padding: 4px 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
+        .comment-edit-btn { background-color: rgba(255,255,255,0.15); color: white; border: none; padding: 4px 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
+        .comment-edit-textarea { width: 100%; padding: 8px 10px; margin-top: 6px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-size: 13px; resize: vertical; min-height: 50px; outline: none; }
+        .comment-save-btn { background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%); color: #111; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; font-size: 10px; cursor: pointer; text-transform: uppercase; }
+        .comment-cancel-btn { background: rgba(255,255,255,0.15); color: white; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; font-size: 10px; cursor: pointer; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -146,7 +152,23 @@
             setInterval(loadComments, 5000);
         };
 
+        // Give this browser a persistent anonymous ID so it can recognize (and delete) its own comments later.
+        function getCommenterId() {
+            let id = localStorage.getItem('scmm_commenter_id');
+            if (!id) {
+                id = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+                localStorage.setItem('scmm_commenter_id', id);
+            }
+            return id;
+        }
+
+        function isAdmin() {
+            return sessionStorage.getItem('scmm_admin_logged') === 'true';
+        }
+
         let lastRenderedCommentsHash = "";
+        let lastComments = [];
+        let editingCommentId = null;
 
         async function loadComments() {
             try {
@@ -157,6 +179,7 @@
                 if (!response.ok) throw new Error("status " + response.status);
                 const data = await response.json();
                 const comments = Array.isArray(data) ? data : [];
+                lastComments = comments;
                 renderComments(comments);
             } catch (e) {
                 console.error("Comment fetch failed:", e);
@@ -167,7 +190,7 @@
             const list = document.getElementById('comments-list');
             if (!list) return;
 
-            const currentHash = JSON.stringify(comments);
+            const currentHash = JSON.stringify(comments) + "|" + isAdmin() + "|" + editingCommentId;
             if (currentHash === lastRenderedCommentsHash) return;
             lastRenderedCommentsHash = currentHash;
 
@@ -176,17 +199,122 @@
                 return;
             }
 
+            const myId = getCommenterId();
+            const admin = isAdmin();
+
             list.innerHTML = '';
             comments.slice().reverse().forEach(c => {
+                const canManage = admin || c.ownerId === myId;
                 const item = document.createElement('div');
                 item.className = 'comment-item';
-                item.innerHTML = `
-                    <div class="comment-name">${escapeHtml(c.name)}</div>
-                    <div class="comment-text">${escapeHtml(c.text)}</div>
-                    <div class="comment-date">${c.date}</div>
-                `;
+
+                if (editingCommentId === c.id) {
+                    item.innerHTML = `
+                        <div class="comment-name">${escapeHtml(c.name)}</div>
+                        <textarea id="edit-textarea-${c.id}" class="comment-edit-textarea" maxlength="500">${escapeHtml(c.text)}</textarea>
+                        <div style="display:flex; gap:8px; margin-top:6px;">
+                            <button class="comment-save-btn" onclick="saveEditComment('${c.id}')">Save</button>
+                            <button class="comment-cancel-btn" onclick="cancelEditComment()">Cancel</button>
+                        </div>
+                    `;
+                } else {
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                            <div style="flex:1;">
+                                <div class="comment-name">${escapeHtml(c.name)}</div>
+                                <div class="comment-text">${escapeHtml(c.text)}</div>
+                                <div class="comment-date">${c.date}${c.edited ? ' (edited)' : ''}</div>
+                            </div>
+                            ${canManage ? `
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <button class="comment-edit-btn" onclick="startEditComment('${c.id}')">Edit</button>
+                                    <button class="comment-delete-btn" onclick="deleteComment('${c.id}')">Delete</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
                 list.appendChild(item);
             });
+        }
+
+        function startEditComment(id) {
+            editingCommentId = id;
+            lastRenderedCommentsHash = "";
+            renderComments(lastComments);
+        }
+
+        function cancelEditComment() {
+            editingCommentId = null;
+            lastRenderedCommentsHash = "";
+            renderComments(lastComments);
+        }
+
+        async function saveEditComment(id) {
+            const textarea = document.getElementById('edit-textarea-' + id);
+            const newText = textarea.value.trim();
+            if (!newText) {
+                alert('Comment cannot be empty.');
+                return;
+            }
+
+            try {
+                const response = await fetch(COMMENTS_BASE_URL + "/latest?t=" + Date.now(), {
+                    headers: { "X-Bin-Meta": "false" },
+                    cache: "no-store"
+                });
+                const currentComments = response.ok ? await response.json() : [];
+                const comments = Array.isArray(currentComments) ? currentComments : [];
+                const target = comments.find(c => c.id === id);
+                if (target) {
+                    target.text = newText;
+                    target.edited = true;
+                }
+
+                const saveRes = await fetch(COMMENTS_BASE_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": COMMENTS_MASTER_KEY
+                    },
+                    body: JSON.stringify(comments)
+                });
+
+                if (!saveRes.ok) throw new Error("Save failed");
+
+                editingCommentId = null;
+                lastRenderedCommentsHash = "";
+                await loadComments();
+            } catch (e) {
+                alert('Could not save edit: ' + e.message);
+            }
+        }
+
+        async function deleteComment(id) {
+            if (!confirm('Delete this comment?')) return;
+            try {
+                const response = await fetch(COMMENTS_BASE_URL + "/latest?t=" + Date.now(), {
+                    headers: { "X-Bin-Meta": "false" },
+                    cache: "no-store"
+                });
+                const currentComments = response.ok ? await response.json() : [];
+                const comments = (Array.isArray(currentComments) ? currentComments : []).filter(c => c.id !== id);
+
+                const saveRes = await fetch(COMMENTS_BASE_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": COMMENTS_MASTER_KEY
+                    },
+                    body: JSON.stringify(comments)
+                });
+
+                if (!saveRes.ok) throw new Error("Delete failed");
+                lastRenderedCommentsHash = "";
+                await loadComments();
+            } catch (e) {
+                alert('Could not delete comment: ' + e.message);
+            }
         }
 
         function escapeHtml(str) {
@@ -221,6 +349,7 @@
 
                 comments.push({
                     id: Date.now().toString(),
+                    ownerId: getCommenterId(),
                     name: name,
                     text: text,
                     date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -238,6 +367,7 @@
                 if (!saveRes.ok) throw new Error("Save failed");
 
                 textInput.value = '';
+                lastRenderedCommentsHash = "";
                 await loadComments();
             } catch (e) {
                 alert('Could not post comment: ' + e.message);
