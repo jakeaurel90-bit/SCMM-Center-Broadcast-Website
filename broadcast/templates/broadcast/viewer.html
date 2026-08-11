@@ -130,6 +130,11 @@
         const JSONBIN_ID = "6a7ae71af5f4af5e290659c6";
         const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
 
+        // Comments bin - anonymous posting needs write access here too.
+        const COMMENTS_BIN_ID = "6a7b3670da38895dfed620c4";
+        const COMMENTS_MASTER_KEY = "$2a$10$Xn9O36gL4SyzMLxaFSge6.xdUe.KtDy5hH29EwXK.QQghnx1kZE72";
+        const COMMENTS_BASE_URL = `https://api.jsonbin.io/v3/b/${COMMENTS_BIN_ID}`;
+
         window.onload = async function() {
             document.getElementById('loader').style.display = 'none';
             document.getElementById('viewer-container').style.display = 'block';
@@ -137,7 +142,110 @@
             initializeChronologicalTimeEngine();
             await loadViewerPosts();
             setInterval(loadViewerPosts, 5000);
+            await loadComments();
+            setInterval(loadComments, 5000);
         };
+
+        let lastRenderedCommentsHash = "";
+
+        async function loadComments() {
+            try {
+                const response = await fetch(COMMENTS_BASE_URL + "/latest?t=" + Date.now(), {
+                    headers: { "X-Bin-Meta": "false" },
+                    cache: "no-store"
+                });
+                if (!response.ok) throw new Error("status " + response.status);
+                const data = await response.json();
+                const comments = Array.isArray(data) ? data : [];
+                renderComments(comments);
+            } catch (e) {
+                console.error("Comment fetch failed:", e);
+            }
+        }
+
+        function renderComments(comments) {
+            const list = document.getElementById('comments-list');
+            if (!list) return;
+
+            const currentHash = JSON.stringify(comments);
+            if (currentHash === lastRenderedCommentsHash) return;
+            lastRenderedCommentsHash = currentHash;
+
+            if (!comments || comments.length === 0) {
+                list.innerHTML = `<div class="comment-item"><div class="comment-text">Be the first to comment!</div></div>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            comments.slice().reverse().forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'comment-item';
+                item.innerHTML = `
+                    <div class="comment-name">${escapeHtml(c.name)}</div>
+                    <div class="comment-text">${escapeHtml(c.text)}</div>
+                    <div class="comment-date">${c.date}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.innerText = str || '';
+            return div.innerHTML;
+        }
+
+        async function submitComment() {
+            const nameInput = document.getElementById('comment-name');
+            const textInput = document.getElementById('comment-text');
+            const btn = document.getElementById('commentBtn');
+
+            const name = nameInput.value.trim();
+            const text = textInput.value.trim();
+
+            if (!name || !text) {
+                alert('Please enter your name and a comment.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Posting...";
+
+            try {
+                const response = await fetch(COMMENTS_BASE_URL + "/latest?t=" + Date.now(), {
+                    headers: { "X-Bin-Meta": "false" },
+                    cache: "no-store"
+                });
+                const currentComments = response.ok ? await response.json() : [];
+                const comments = Array.isArray(currentComments) ? currentComments : [];
+
+                comments.push({
+                    id: Date.now().toString(),
+                    name: name,
+                    text: text,
+                    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                });
+
+                const saveRes = await fetch(COMMENTS_BASE_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": COMMENTS_MASTER_KEY
+                    },
+                    body: JSON.stringify(comments)
+                });
+
+                if (!saveRes.ok) throw new Error("Save failed");
+
+                textInput.value = '';
+                await loadComments();
+            } catch (e) {
+                alert('Could not post comment: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Post Comment";
+            }
+        }
 
         function initializeChronologicalTimeEngine() {
             function constructChronometerTicks() {
