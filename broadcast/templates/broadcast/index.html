@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCMM Media Center Broadcast Dashboard</title>
+
+    <!-- PWA installability -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0b2545">
+    <link rel="icon" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SCMM Media Center">
+
     <style>
         :root {
             --bg-dark-blue: #0b2545;
@@ -30,6 +40,8 @@
         .header-user-actions { display: flex; align-items: center; gap: 20px; }
         .logout-btn { background-color: var(--danger-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; text-decoration: none; }
         .logout-btn:hover { background-color: var(--danger-red-hover); }
+        .view-live-btn { background-color: var(--accent-gold); color: #111; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; text-decoration: none; }
+        .view-live-btn:hover { background-color: var(--accent-gold-hover); }
         .dashboard-grid { padding: 20px; display: grid; grid-template-columns: 1fr 340px; gap: 20px; flex: 1; }
         .left-column-group { display: flex; flex-direction: column; gap: 20px; }
         .theme-banner { background: linear-gradient(rgba(11, 37, 69, 0.4), rgba(11, 37, 69, 0.7)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover; border-radius: 12px; height: 180px; padding: 30px; display: flex; flex-direction: column; justify-content: flex-end; border: 1px solid rgba(255,255,255,0.1); }
@@ -86,6 +98,7 @@
                     </div>
                 </div>
                 <div class="header-user-actions">
+                    <a href="viewer.html" class="view-live-btn">View Live Page</a>
                     <a href="logout.html" class="logout-btn">Log Out</a>
                 </div>
             </header>
@@ -189,6 +202,9 @@
             if (sessionStorage.getItem('scmm_admin_logged') !== 'true') {
                 window.location.href = 'login.html';
                 return;
+            }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(e => console.error('SW registration failed:', e));
             }
             initializeChronologicalTimeEngine();
             fetchOnlinePosts();
