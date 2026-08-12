@@ -148,15 +148,8 @@
     </div>
 
     <script>
-        // Same bin as the admin dashboard — read-only here, no Master Key needed.
-        // Make sure this bin is set to "Public" in your jsonbin.io settings so it can be read without a key.
-        const JSONBIN_ID = "6a7ae71af5f4af5e290659c6";
-        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
-
-        // Comments bin - anonymous posting needs write access here too.
-        const COMMENTS_BIN_ID = "6a7b3670da38895dfed620c4";
-        const COMMENTS_MASTER_KEY = "$2a$10$Xn9O36gL4SyzMLxaFSge6.xdUe.KtDy5hH29EwXK.QQghnx1kZE72";
-        const COMMENTS_BASE_URL = `https://api.jsonbin.io/v3/b/${COMMENTS_BIN_ID}`;
+        // Firebase Realtime Database - shared with the admin dashboard.
+        const FIREBASE_DB_URL = "https://scmm-broadcast-default-rtdb.asia-southeast1.firebasedatabase.app";
 
         window.onload = async function() {
             document.getElementById('loader').style.display = 'none';
@@ -267,8 +260,7 @@
 
         async function loadComments() {
             try {
-                const response = await fetch(COMMENTS_BASE_URL + "/latest?t=" + Date.now(), {
-                    headers: { "X-Bin-Meta": "false" },
+                const response = await fetch(FIREBASE_DB_URL + "/comments.json?t=" + Date.now(), {
                     cache: "no-store"
                 });
                 if (!response.ok) throw new Error("status " + response.status);
@@ -354,8 +346,7 @@
             }
 
             try {
-                const response = await fetch(COMMENTS_BASE_URL + "/latest?t=" + Date.now(), {
-                    headers: { "X-Bin-Meta": "false" },
+                const response = await fetch(FIREBASE_DB_URL + "/comments.json?t=" + Date.now(), {
                     cache: "no-store"
                 });
                 const currentComments = response.ok ? await response.json() : [];
@@ -366,12 +357,9 @@
                     target.edited = true;
                 }
 
-                const saveRes = await fetch(COMMENTS_BASE_URL, {
+                const saveRes = await fetch(FIREBASE_DB_URL + "/comments.json", {
                     method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Master-Key": COMMENTS_MASTER_KEY
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(comments)
                 });
 
@@ -388,19 +376,15 @@
         async function deleteComment(id) {
             if (!confirm('Delete this comment?')) return;
             try {
-                const response = await fetch(COMMENTS_BASE_URL + "/latest?t=" + Date.now(), {
-                    headers: { "X-Bin-Meta": "false" },
+                const response = await fetch(FIREBASE_DB_URL + "/comments.json?t=" + Date.now(), {
                     cache: "no-store"
                 });
                 const currentComments = response.ok ? await response.json() : [];
                 const comments = (Array.isArray(currentComments) ? currentComments : []).filter(c => c.id !== id);
 
-                const saveRes = await fetch(COMMENTS_BASE_URL, {
+                const saveRes = await fetch(FIREBASE_DB_URL + "/comments.json", {
                     method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Master-Key": COMMENTS_MASTER_KEY
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(comments)
                 });
 
@@ -435,8 +419,7 @@
             btn.innerText = "Posting...";
 
             try {
-                const response = await fetch(COMMENTS_BASE_URL + "/latest?t=" + Date.now(), {
-                    headers: { "X-Bin-Meta": "false" },
+                const response = await fetch(FIREBASE_DB_URL + "/comments.json?t=" + Date.now(), {
                     cache: "no-store"
                 });
                 const currentComments = response.ok ? await response.json() : [];
@@ -450,12 +433,9 @@
                     date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
                 });
 
-                const saveRes = await fetch(COMMENTS_BASE_URL, {
+                const saveRes = await fetch(FIREBASE_DB_URL + "/comments.json", {
                     method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Master-Key": COMMENTS_MASTER_KEY
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(comments)
                 });
 
@@ -512,8 +492,7 @@
 
         async function loadViewerPosts() {
             try {
-                const response = await fetch(JSONBIN_URL + "?t=" + Date.now(), {
-                    headers: { "X-Bin-Meta": "false" },
+                const response = await fetch(FIREBASE_DB_URL + "/posts.json?t=" + Date.now(), {
                     cache: "no-store"
                 });
                 if (!response.ok) throw new Error("status " + response.status);

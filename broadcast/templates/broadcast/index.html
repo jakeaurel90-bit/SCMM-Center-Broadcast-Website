@@ -163,14 +163,10 @@
 
     <script>
         // ======================================================================
-        // CLOUD SYNC CONFIG
-        // 1. Sign up free at https://jsonbin.io
-        // 2. Create a new bin with content: []
-        // 3. Paste your Bin ID and X-Master-Key below.
+        // CLOUD SYNC CONFIG (Firebase Realtime Database - free, renewing tier)
+        // Paste your Database URL once you've created it (see setup guide).
         // ======================================================================
-        const JSONBIN_ID = "6a7ae71af5f4af5e290659c6";
-        const JSONBIN_MASTER_KEY = "$2a$10$Xn9O36gL4SyzMLxaFSge6.xdUe.KtDy5hH29EwXK.QQghnx1kZE72";
-        const JSONBIN_BASE_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+        const FIREBASE_DB_URL = "https://scmm-broadcast-default-rtdb.asia-southeast1.firebasedatabase.app";
 
         // ======================================================================
         // MEDIA UPLOAD CONFIG (Cloudinary - free media hosting)
@@ -231,14 +227,10 @@
             el.style.color = ok ? '#8da9c4' : '#e2635f';
         }
 
-        // Fetch the current array of posts from JSONBin. Returns [] on any failure.
+        // Fetch the current array of posts from Firebase. Returns [] on any failure.
         async function getPostsFromCloud() {
-            const response = await fetch(JSONBIN_BASE_URL + "/latest", {
+            const response = await fetch(FIREBASE_DB_URL + "/posts.json", {
                 method: "GET",
-                headers: {
-                    "X-Master-Key": JSONBIN_MASTER_KEY,
-                    "X-Bin-Meta": "false"
-                },
                 cache: "no-store"
             });
             if (!response.ok) throw new Error("Cloud read failed (" + response.status + ")");
@@ -246,14 +238,11 @@
             return Array.isArray(data) ? data : [];
         }
 
-        // Overwrite the entire bin with a new array of posts.
+        // Overwrite the entire posts list in Firebase.
         async function savePostsToCloud(posts) {
-            const response = await fetch(JSONBIN_BASE_URL, {
+            const response = await fetch(FIREBASE_DB_URL + "/posts.json", {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Master-Key": JSONBIN_MASTER_KEY
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(posts)
             });
             if (!response.ok) throw new Error("Cloud save failed (" + response.status + ")");

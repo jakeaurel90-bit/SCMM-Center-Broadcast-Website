@@ -31,17 +31,15 @@ app.post('/api/login', (req, res) => {
 // PUSH NOTIFICATIONS
 // Set these in Render's Environment Variables (not hardcoded, keeps your
 // private key out of GitHub):
-//   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_CONTACT_EMAIL
-// PUSH_SUBSCRIPTIONS_BIN_ID / PUSH_SUBSCRIPTIONS_MASTER_KEY point to the
-// JSONBin bin that stores who has notifications turned on.
+//   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_CONTACT_EMAIL, FIREBASE_DB_URL
+// FIREBASE_DB_URL points to the same Firebase Realtime Database your
+// dashboard and viewer page use, storing who has notifications turned on.
 // ======================================================================
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "BFwZRLbTkfdcScWrMdg_IKDUNTe8D702g1niyvtB11IEEKxvaxqzpPq0BKH0i_RZkVHsQyjkreGONPykxiK2SAk";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "3RcSyhYecw8ndOqL2RMXHTA0g0JanRlT9bf03ilVlyQ";
 const VAPID_CONTACT_EMAIL = process.env.VAPID_CONTACT_EMAIL || "mailto:jakeaurel90@gmail.com";
 
-const PUSH_SUBSCRIPTIONS_BIN_ID = process.env.PUSH_SUBSCRIPTIONS_BIN_ID || "6a7bfe61da38895dfed8f371";
-const PUSH_MASTER_KEY = process.env.PUSH_MASTER_KEY || "$2a$10$Xn9O36gL4SyzMLxaFSge6.xdUe.KtDy5hH29EwXK.QQghnx1kZE72";
-const PUSH_BIN_URL = `https://api.jsonbin.io/v3/b/${PUSH_SUBSCRIPTIONS_BIN_ID}`;
+const FIREBASE_DB_URL = process.env.FIREBASE_DB_URL || "https://scmm-broadcast-default-rtdb.asia-southeast1.firebasedatabase.app";
 
 webpush.setVapidDetails(VAPID_CONTACT_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
@@ -50,8 +48,7 @@ app.get('/api/vapid-public-key', (req, res) => {
 });
 
 async function getSubscriptions() {
-    const r = await fetch(PUSH_BIN_URL + "/latest?t=" + Date.now(), {
-        headers: { "X-Master-Key": PUSH_MASTER_KEY, "X-Bin-Meta": "false" },
+    const r = await fetch(FIREBASE_DB_URL + "/pushSubscriptions.json?t=" + Date.now(), {
         cache: "no-store"
     });
     if (!r.ok) return [];
@@ -60,9 +57,9 @@ async function getSubscriptions() {
 }
 
 async function saveSubscriptions(subs) {
-    await fetch(PUSH_BIN_URL, {
+    await fetch(FIREBASE_DB_URL + "/pushSubscriptions.json", {
         method: "PUT",
-        headers: { "Content-Type": "application/json", "X-Master-Key": PUSH_MASTER_KEY },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subs)
     });
 }
