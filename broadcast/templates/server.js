@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const webpush = require('web-push');
 const app = express();
 
 app.use(express.json());
@@ -23,6 +24,100 @@ app.post('/api/login', (req, res) => {
         res.json({ success: true });
     } else {
         res.status(401).json({ success: false });
+    }
+});
+
+// ======================================================================
+// PUSH NOTIFICATIONS
+// Set these in Render's Environment Variables (not hardcoded, keeps your
+// private key out of GitHub):
+//   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_CONTACT_EMAIL
+// PUSH_SUBSCRIPTIONS_BIN_ID / PUSH_SUBSCRIPTIONS_MASTER_KEY point to the
+// JSONBin bin that stores who has notifications turned on.
+// ======================================================================
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "BFwZRLbTkfdcScWrMdg_IKDUNTe8D702g1niyvtB11IEEKxvaxqzpPq0BKH0i_RZkVHsQyjkreGONPykxiK2SAk";
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "3RcSyhYecw8ndOqL2RMXHTA0g0JanRlT9bf03ilVlyQ";
+const VAPID_CONTACT_EMAIL = process.env.VAPID_CONTACT_EMAIL || "mailto:jakeaurel90@gmail.com";
+
+const PUSH_SUBSCRIPTIONS_BIN_ID = process.env.PUSH_SUBSCRIPTIONS_BIN_ID || "6a7bfe61da38895dfed8f371";
+const PUSH_MASTER_KEY = process.env.PUSH_MASTER_KEY || "$2a$10$Xn9O36gL4SyzMLxaFSge6.xdUe.KtDy5hH29EwXK.QQghnx1kZE72";
+const PUSH_BIN_URL = `https://api.jsonbin.io/v3/b/${PUSH_SUBSCRIPTIONS_BIN_ID}`;
+
+webpush.setVapidDetails(VAPID_CONTACT_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+
+app.get('/api/vapid-public-key', (req, res) => {
+    res.json({ publicKey: VAPID_PUBLIC_KEY });
+});
+
+async function getSubscriptions() {
+    const r = await fetch(PUSH_BIN_URL + "/latest?t=" + Date.now(), {
+        headers: { "X-Master-Key": PUSH_MASTER_KEY, "X-Bin-Meta": "false" },
+        cache: "no-store"
+    });
+    if (!r.ok) return [];
+    const data = await r.json();
+    return Array.isArray(data) ? data.filter(s => s && s.endpoint) : [];
+}
+
+async function saveSubscriptions(subs) {
+    await fetch(PUSH_BIN_URL, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-Master-Key": PUSH_MASTER_KEY },
+        body: JSON.stringify(subs)
+    });
+}
+
+// Called by viewer.html once the person allows notifications.
+app.post('/api/subscribe', async (req, res) => {
+    try {
+        const subscription = req.body;
+        if (!subscription || !subscription.endpoint) {
+            return res.status(400).json({ success: false });
+        }
+        const subs = await getSubscriptions();
+        const alreadyExists = subs.some(s => s.endpoint === subscription.endpoint);
+        if (!alreadyExists) {
+            subs.push(subscription);
+            await saveSubscriptions(subs);
+        }
+        res.json({ success: true });
+    } catch (e) {
+        console.error("Subscribe failed:", e);
+        res.status(500).json({ success: false });
+    }
+});
+
+// Called by index.html right after a new post is published.
+app.post('/api/notify', async (req, res) => {
+    try {
+        const { title, body } = req.body || {};
+        const subs = await getSubscriptions();
+        const payload = JSON.stringify({
+            title: title || 'SCMM Live Media Center',
+            body: body || 'A new announcement was just posted.'
+        });
+
+        const stillValid = [];
+        for (const sub of subs) {
+            try {
+                await webpush.sendNotification(sub, payload);
+                stillValid.push(sub);
+            } catch (err) {
+                // 404/410 means that device unsubscribed or uninstalled - drop it quietly.
+                if (err.statusCode !== 404 && err.statusCode !== 410) {
+                    stillValid.push(sub);
+                }
+            }
+        }
+
+        if (stillValid.length !== subs.length) {
+            await saveSubscriptions(stillValid);
+        }
+
+        res.json({ success: true, sent: stillValid.length });
+    } catch (e) {
+        console.error("Notify failed:", e);
+        res.status(500).json({ success: false });
     }
 });
 

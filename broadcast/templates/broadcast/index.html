@@ -323,6 +323,20 @@
                 currentPosts.unshift(newPost);
                 await savePostsToCloud(currentPosts);
 
+                // Notify everyone with notifications turned on - failure here shouldn't block publishing.
+                try {
+                    await fetch('/api/notify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: newPost.title,
+                            body: content ? content.slice(0, 100) : 'Tap to view the new announcement.'
+                        })
+                    });
+                } catch (notifyErr) {
+                    console.error('Notification send failed:', notifyErr);
+                }
+
                 titleInput.value = '';
                 contentInput.value = '';
                 imageInput.value = '';
