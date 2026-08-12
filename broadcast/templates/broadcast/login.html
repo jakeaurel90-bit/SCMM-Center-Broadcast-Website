@@ -33,6 +33,7 @@
             color: #111; padding: 12px; border: none; border-radius: 6px;
             font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
         }
+        .login-box button:disabled { background: #666; cursor: not-allowed; }
         .login-error { color: #ff6b6b; font-size: 12px; margin-top: 10px; display: none; }
         .back-link { display: block; margin-top: 15px; color: var(--text-light); font-size: 12px; text-decoration: none; opacity: 0.8; }
         .back-link:hover { opacity: 1; text-decoration: underline; }
@@ -42,30 +43,48 @@
 
     <div class="login-box">
         <h2>Admin Authentication</h2>
-        <form onsubmit="handleLogin(event)">
-            <input type="text" id="admin-user" placeholder="Username (SCMM)" required autocomplete="username">
-            <input type="password" id="admin-pass" placeholder="Password" required autocomplete="current-password">
-            <button type="submit">Log In</button>
+        <form onsubmit="handleLogin(event)" autocomplete="off">
+            <input type="text" id="admin-user" placeholder="Username" required autocomplete="off">
+            <input type="password" id="admin-pass" placeholder="Password" required autocomplete="new-password">
+            <button type="submit" id="loginBtn">Log In</button>
             <div id="login-error" class="login-error">Incorrect username or password.</div>
         </form>
         <a href="viewer.html" class="back-link">← Return to Public Viewer Screen</a>
     </div>
 
     <script>
-        const ADMIN_USER = "SCMM";
-        const ADMIN_PASSWORD = "scmm2026admin";
-
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
             const userInput = document.getElementById('admin-user').value.trim();
             const passInput = document.getElementById('admin-pass').value;
             const errorDiv = document.getElementById('login-error');
+            const btn = document.getElementById('loginBtn');
 
-            if (userInput === ADMIN_USER && passInput === ADMIN_PASSWORD) {
-                sessionStorage.setItem('scmm_admin_logged', 'true');
-                window.location.href = 'index.html';
-            } else {
+            errorDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.innerText = "Checking...";
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: userInput, password: passInput })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    sessionStorage.setItem('scmm_admin_logged', 'true');
+                    window.location.href = 'index.html';
+                } else {
+                    errorDiv.style.display = 'block';
+                    document.getElementById('admin-pass').value = '';
+                }
+            } catch (e) {
+                errorDiv.innerText = 'Connection error. Please try again.';
                 errorDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Log In";
             }
         }
 
