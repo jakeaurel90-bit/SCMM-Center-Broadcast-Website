@@ -461,6 +461,20 @@
 
                 if (!saveRes.ok) throw new Error("Save failed");
 
+                // Notify everyone with notifications turned on - failure here shouldn't block the comment itself.
+                try {
+                    await fetch('/api/notify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: `💬 New comment from ${name}`,
+                            body: text.slice(0, 100)
+                        })
+                    });
+                } catch (notifyErr) {
+                    console.error('Comment notification send failed:', notifyErr);
+                }
+
                 textInput.value = '';
                 lastRenderedCommentsHash = "";
                 await loadComments();
