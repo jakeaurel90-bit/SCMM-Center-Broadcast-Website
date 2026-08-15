@@ -45,6 +45,16 @@
         .content-card h2 { color: var(--bg-dark-blue); font-size: 20px; margin-bottom: 15px; }
         .content-card p { color: #444; font-size: 14px; line-height: 1.7; margin-bottom: 15px; }
         .placeholder-note { background: rgba(226,177,60,0.12); border-left: 4px solid var(--accent-gold); padding: 12px 16px; border-radius: 6px; font-size: 12.5px; color: #7a5c14; margin-top: 20px; }
+        .org-chain { display: flex; flex-direction: column; gap: 0; margin: 25px 0; }
+        .org-level { position: relative; padding: 16px 20px 16px 20px; border-radius: 8px; margin-left: calc(var(--depth, 0) * 28px); }
+        .org-level-0 { background: var(--bg-dark-blue); color: #fff; }
+        .org-level-1 { background: var(--panel-blue); color: #fff; }
+        .org-level-2 { background: #1c4275; color: #fff; }
+        .org-level-3 { background: var(--accent-gold); color: #111; border: 2px solid #c49429; }
+        .org-level-4 { background: #f4f4f4; color: #333; border: 1px dashed #bbb; }
+        .org-level-name { font-weight: bold; font-size: 14.5px; }
+        .org-level-desc { font-size: 12px; opacity: 0.85; margin-top: 3px; }
+        .org-connector { text-align: center; color: var(--accent-gold); font-size: 14px; margin: 2px 0 2px calc(var(--depth, 0) * 28px); }
     </style>
 </head>
 <body>
@@ -71,9 +81,43 @@
         <div class="page-body">
             <div class="content-card">
                 <h2>Organization</h2>
-                <p>An overview of SCMM's organizational structure and how our ministry is set up to serve our communities.</p>
+                <p>South Central Mindanao Mission (SCMM) is one administrative level within the worldwide structure of the Seventh-day Adventist Church. Like every Adventist mission field, SCMM operates within a four-tier system of church governance that connects local congregations all the way up to the world church headquarters.</p>
+
+                <div class="org-chain">
+                    <div class="org-level org-level-0" style="--depth:0;">
+                        <div class="org-level-name">General Conference of Seventh-day Adventists</div>
+                        <div class="org-level-desc">The worldwide headquarters of the Church, based in Silver Spring, Maryland, USA. It oversees the entire global Adventist movement.</div>
+                    </div>
+                    <div class="org-connector" style="--depth:0;">↓</div>
+
+                    <div class="org-level org-level-1" style="--depth:1;">
+                        <div class="org-level-name">Southern Asia-Pacific Division</div>
+                        <div class="org-level-desc">A regional arm of the General Conference overseeing Adventist work across the Philippines and neighboring countries in the Asia-Pacific region.</div>
+                    </div>
+                    <div class="org-connector" style="--depth:1;">↓</div>
+
+                    <div class="org-level org-level-2" style="--depth:2;">
+                        <div class="org-level-name">Southeastern Philippine Union Mission (SEPUM)</div>
+                        <div class="org-level-desc">The union-level body overseeing Adventist missions across Southeastern Mindanao, including Davao and the surrounding provinces.</div>
+                    </div>
+                    <div class="org-connector" style="--depth:2;">↓</div>
+
+                    <div class="org-level org-level-3" style="--depth:3;">
+                        <div class="org-level-name">South Central Mindanao Mission (SCMM)</div>
+                        <div class="org-level-desc">Our local mission field, serving Cotabato City, Kidapawan City, Tacurong City, and the provinces of Maguindanao, North Cotabato, and Sultan Kudarat.</div>
+                    </div>
+                    <div class="org-connector" style="--depth:3;">↓</div>
+
+                    <div class="org-level org-level-4" style="--depth:4;">
+                        <div class="org-level-name">Local Churches and Congregations</div>
+                        <div class="org-level-desc">The individual Seventh-day Adventist churches and companies throughout SCMM's territory, where members worship and serve their communities directly.</div>
+                    </div>
+                </div>
+
+                <p>SCMM was organized in 2024 from territory formerly part of the Southern Mindanao Mission. As of mid-2025, SCMM serves a territory of over 5 million people through 185 local churches with a combined membership of over 83,000.</p>
+
                 <div class="placeholder-note">
-                    This is placeholder content. Replace this text with your actual organization information.
+                    This section reflects publicly available Adventist Church directory information. Replace or expand it with SCMM's own official organizational details as needed.
                 </div>
             </div>
         </div>
