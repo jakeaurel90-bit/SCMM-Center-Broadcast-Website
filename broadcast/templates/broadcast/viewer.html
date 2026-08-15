@@ -108,6 +108,7 @@
             <div class="site-sidebar-title">SCMM</div>
         </div>
         <nav class="site-sidebar-nav">
+            <a href="/index.html" class="site-sidebar-link" data-page="dashboard" id="dashboardNavLink" style="display:none;">Dashboard</a>
             <a href="/viewer.html" class="site-sidebar-link" data-page="viewer">Live Broadcast</a>
             <a href="/about.html" class="site-sidebar-link" data-page="about">About Us</a>
             <a href="/organization.html" class="site-sidebar-link" data-page="organization">Organization</a>
@@ -211,6 +212,7 @@
                 const loginLink = document.getElementById('staffLoginLink');
                 loginLink.href = 'index.html';
                 loginLink.innerText = 'Back to Dashboard';
+                document.getElementById('dashboardNavLink').style.display = '';
             }
 
             if ('serviceWorker' in navigator) {
