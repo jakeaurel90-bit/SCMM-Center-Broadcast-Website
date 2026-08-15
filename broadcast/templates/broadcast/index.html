@@ -98,6 +98,7 @@
             <div class="brand-text">SCMM</div>
             <nav class="sidebar-nav">
                 <a href="/index.html" data-page="dashboard">Dashboard</a>
+                <a href="/viewer.html" data-page="viewer">Live Broadcast</a>
                 <a href="/about.html" data-page="about">About Us</a>
                 <a href="/organization.html" data-page="organization">Organization</a>
                 <a href="/scmm-department.html" data-page="scmm-department">SCMM Department</a>
@@ -128,8 +129,8 @@
             <div class="dashboard-grid">
                 <div class="left-column-group">
                     <div class="theme-banner">
-                        <div class="theme-tag">This Month's Theme:</div>
-                        <div class="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
+                        <div class="theme-tag" id="theme-tag">This Month's Theme:</div>
+                        <div class="theme-title" id="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
                     </div>
 
                     <div class="post-creation-panel">
@@ -154,14 +155,14 @@
 
                     <div class="scripture-display-rack">
                         <div class="scripture-card">
-                            <div class="scripture-card-header">Daily Memory Verse</div>
-                            <div class="scripture-reference">Philippians 4:13</div>
-                            <div class="scripture-body">"I can do all things through Christ who strengthens me."</div>
+                            <div class="scripture-card-header" id="verse1-label">Daily Memory Verse</div>
+                            <div class="scripture-reference" id="verse1-reference">Philippians 4:13</div>
+                            <div class="scripture-body" id="verse1-text">"I can do all things through Christ who strengthens me."</div>
                         </div>
                         <div class="scripture-card">
-                            <div class="scripture-card-header">Sabbath Focus Devotional Quote</div>
-                            <div class="scripture-reference">Proverbs 16:3</div>
-                            <div class="scripture-body">"Commit your actions to the Lord, and your plans will succeed."</div>
+                            <div class="scripture-card-header" id="verse2-label">Sabbath Focus Devotional Quote</div>
+                            <div class="scripture-reference" id="verse2-reference">Proverbs 16:3</div>
+                            <div class="scripture-body" id="verse2-text">"Commit your actions to the Lord, and your plans will succeed."</div>
                         </div>
                     </div>
                 </div>
@@ -221,6 +222,30 @@
             document.getElementById('sidebarOverlay').classList.toggle('show');
         }
 
+        // Loads the editable theme banner + scripture cards from Firebase.
+        // Falls back to whatever is already in the HTML if nothing's been saved yet.
+        async function loadSiteContent() {
+            try {
+                const response = await fetch(FIREBASE_DB_URL + "/siteContent.json?t=" + Date.now(), {
+                    cache: "no-store"
+                });
+                if (!response.ok) return;
+                const content = await response.json();
+                if (!content) return;
+
+                if (content.themeTag) document.getElementById('theme-tag').innerText = content.themeTag;
+                if (content.themeTitle) document.getElementById('theme-title').innerText = content.themeTitle;
+                if (content.verse1Label) document.getElementById('verse1-label').innerText = content.verse1Label;
+                if (content.verse1Reference) document.getElementById('verse1-reference').innerText = content.verse1Reference;
+                if (content.verse1Text) document.getElementById('verse1-text').innerText = content.verse1Text;
+                if (content.verse2Label) document.getElementById('verse2-label').innerText = content.verse2Label;
+                if (content.verse2Reference) document.getElementById('verse2-reference').innerText = content.verse2Reference;
+                if (content.verse2Text) document.getElementById('verse2-text').innerText = content.verse2Text;
+            } catch (e) {
+                console.error('Site content load failed:', e);
+            }
+        }
+
         window.onload = function() {
             if (sessionStorage.getItem('scmm_admin_logged') !== 'true') {
                 window.location.href = 'login.html';
@@ -232,6 +257,7 @@
                 navigator.serviceWorker.register('/sw.js').catch(e => console.error('SW registration failed:', e));
             }
             initializeChronologicalTimeEngine();
+            loadSiteContent();
             fetchOnlinePosts();
             setInterval(fetchOnlinePosts, 8000);
         };

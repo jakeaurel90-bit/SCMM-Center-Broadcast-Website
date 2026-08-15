@@ -45,6 +45,19 @@
         .content-card h2 { color: var(--bg-dark-blue); font-size: 20px; margin-bottom: 15px; }
         .content-card p { color: #444; font-size: 14px; line-height: 1.7; margin-bottom: 15px; }
         .placeholder-note { background: rgba(226,177,60,0.12); border-left: 4px solid var(--accent-gold); padding: 12px 16px; border-radius: 6px; font-size: 12.5px; color: #7a5c14; margin-top: 20px; }
+        .settings-section { margin-bottom: 30px; }
+        .settings-section:last-child { margin-bottom: 0; }
+        .settings-section h3 { color: var(--bg-dark-blue); font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #eee; }
+        .settings-field { margin-bottom: 14px; }
+        .settings-field label { display: block; color: #555; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px; }
+        .settings-field input, .settings-field textarea { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; outline: none; }
+        .settings-field input:focus, .settings-field textarea:focus { border-color: var(--accent-gold); }
+        .settings-field textarea { resize: vertical; min-height: 60px; }
+        .settings-save-btn { background: linear-gradient(180deg, var(--accent-gold) 0%, #c49429 100%); color: #111; padding: 12px 28px; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .settings-save-btn:disabled { background: #999; cursor: not-allowed; }
+        .settings-status { font-size: 13px; margin-top: 12px; display: none; }
+        .settings-status.success { color: #2a7a3b; display: block; }
+        .settings-status.error { color: #b03030; display: block; }
     </style>
 </head>
 <body>
@@ -72,18 +85,125 @@
         <div class="page-body">
             <div class="content-card">
                 <h2>Settings</h2>
-                <p>Manage your admin account and dashboard preferences here.</p>
-                <div class="placeholder-note">
-                    This is placeholder content. Replace this text with your actual settings information.
-                </div>
+                <p>Edit the theme banner and scripture cards shown on your Dashboard and Live Broadcast page. Changes save instantly and appear on both pages within a few seconds.</p>
+
+                <form onsubmit="saveSiteContent(event)">
+                    <div class="settings-section">
+                        <h3>Theme Banner</h3>
+                        <div class="settings-field">
+                            <label for="input-theme-tag">Small Label (e.g. "This Month's Theme:")</label>
+                            <input type="text" id="input-theme-tag" maxlength="60">
+                        </div>
+                        <div class="settings-field">
+                            <label for="input-theme-title">Main Theme Title</label>
+                            <input type="text" id="input-theme-title" maxlength="100">
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Scripture Card 1</h3>
+                        <div class="settings-field">
+                            <label for="input-verse1-label">Card Label (e.g. "Daily Memory Verse")</label>
+                            <input type="text" id="input-verse1-label" maxlength="60">
+                        </div>
+                        <div class="settings-field">
+                            <label for="input-verse1-reference">Bible Reference (e.g. "Philippians 4:13")</label>
+                            <input type="text" id="input-verse1-reference" maxlength="60">
+                        </div>
+                        <div class="settings-field">
+                            <label for="input-verse1-text">Verse Text</label>
+                            <textarea id="input-verse1-text" maxlength="300"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Scripture Card 2</h3>
+                        <div class="settings-field">
+                            <label for="input-verse2-label">Card Label (e.g. "Sabbath Focus Devotional Quote")</label>
+                            <input type="text" id="input-verse2-label" maxlength="60">
+                        </div>
+                        <div class="settings-field">
+                            <label for="input-verse2-reference">Bible Reference (e.g. "Proverbs 16:3")</label>
+                            <input type="text" id="input-verse2-reference" maxlength="60">
+                        </div>
+                        <div class="settings-field">
+                            <label for="input-verse2-text">Verse Text</label>
+                            <textarea id="input-verse2-text" maxlength="300"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="settings-save-btn" id="saveSettingsBtn">Save Changes</button>
+                    <div class="settings-status" id="settingsStatus"></div>
+                </form>
             </div>
         </div>
     </div>
 
     <script>
+        const FIREBASE_DB_URL = "https://scmm-broadcast-default-rtdb.asia-southeast1.firebasedatabase.app";
+
         function toggleSiteSidebar() {
             document.getElementById('siteSidebar').classList.toggle('open');
             document.getElementById('sidebarOverlay').classList.toggle('show');
+        }
+
+        async function loadCurrentSettings() {
+            try {
+                const response = await fetch(FIREBASE_DB_URL + "/siteContent.json?t=" + Date.now(), {
+                    cache: "no-store"
+                });
+                const content = (await response.json()) || {};
+
+                document.getElementById('input-theme-tag').value = content.themeTag || "This Month's Theme:";
+                document.getElementById('input-theme-title').value = content.themeTitle || "REACHING MINDS, TOUCHING HEARTS.";
+                document.getElementById('input-verse1-label').value = content.verse1Label || "Daily Memory Verse";
+                document.getElementById('input-verse1-reference').value = content.verse1Reference || "Philippians 4:13";
+                document.getElementById('input-verse1-text').value = content.verse1Text || '"I can do all things through Christ who strengthens me."';
+                document.getElementById('input-verse2-label').value = content.verse2Label || "Sabbath Focus Devotional Quote";
+                document.getElementById('input-verse2-reference').value = content.verse2Reference || "Proverbs 16:3";
+                document.getElementById('input-verse2-text').value = content.verse2Text || '"Commit your actions to the Lord, and your plans will succeed."';
+            } catch (e) {
+                console.error('Failed to load current settings:', e);
+            }
+        }
+
+        async function saveSiteContent(event) {
+            event.preventDefault();
+            const btn = document.getElementById('saveSettingsBtn');
+            const status = document.getElementById('settingsStatus');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+            status.className = 'settings-status';
+            status.innerText = '';
+
+            const content = {
+                themeTag: document.getElementById('input-theme-tag').value.trim(),
+                themeTitle: document.getElementById('input-theme-title').value.trim(),
+                verse1Label: document.getElementById('input-verse1-label').value.trim(),
+                verse1Reference: document.getElementById('input-verse1-reference').value.trim(),
+                verse1Text: document.getElementById('input-verse1-text').value.trim(),
+                verse2Label: document.getElementById('input-verse2-label').value.trim(),
+                verse2Reference: document.getElementById('input-verse2-reference').value.trim(),
+                verse2Text: document.getElementById('input-verse2-text').value.trim()
+            };
+
+            try {
+                const res = await fetch(FIREBASE_DB_URL + "/siteContent.json", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(content)
+                });
+                if (!res.ok) throw new Error("Save failed (" + res.status + ")");
+
+                status.className = 'settings-status success';
+                status.innerText = '✓ Saved! Changes are now live on the Dashboard and Live Broadcast page.';
+            } catch (e) {
+                status.className = 'settings-status error';
+                status.innerText = 'Could not save: ' + e.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Save Changes';
+            }
         }
 
         window.onload = function() {
@@ -97,6 +217,7 @@
                     link.classList.add('active');
                 }
             });
+            loadCurrentSettings();
         };
     </script>
 </body>
