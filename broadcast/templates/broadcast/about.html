@@ -45,6 +45,16 @@
         .content-card h2 { color: var(--bg-dark-blue); font-size: 20px; margin-bottom: 15px; }
         .content-card p { color: #444; font-size: 14px; line-height: 1.7; margin-bottom: 15px; }
         .placeholder-note { background: rgba(226,177,60,0.12); border-left: 4px solid var(--accent-gold); padding: 12px 16px; border-radius: 6px; font-size: 12.5px; color: #7a5c14; margin-top: 20px; }
+        .mission-box { background: var(--bg-dark-blue); color: #fff; border-radius: 10px; padding: 22px 25px; margin: 20px 0; text-align: center; }
+        .mission-box .mission-label { color: var(--accent-gold); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; margin-bottom: 10px; }
+        .mission-box .mission-text { font-size: 16px; font-weight: 600; line-height: 1.5; }
+        .about-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+        .about-stat { background: #f4f4f4; border-radius: 8px; padding: 16px 10px; text-align: center; }
+        .about-stat .stat-number { color: var(--bg-dark-blue); font-size: 22px; font-weight: bold; }
+        .about-stat .stat-label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+        @media (max-width: 500px) {
+            .about-stats { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -71,9 +81,34 @@
         <div class="page-body">
             <div class="content-card">
                 <h2>About Us</h2>
-                <p>Learn more about the South Central Mindanao Mission — our mission, vision, and the story behind our work.</p>
+                <p>South Central Mindanao Mission (SCMM) is a local field of the Seventh-day Adventist Church, organized in 2024 to serve believers and communities across Cotabato City, Kidapawan City, Tacurong City, and the provinces of Maguindanao, North Cotabato, and Sultan Kudarat. SCMM operates under the Southeastern Philippine Union Mission, within the worldwide structure of the Adventist Church.</p>
+
+                <div class="mission-box">
+                    <div class="mission-label">Our Mission</div>
+                    <div class="mission-text">To make disciples of Jesus Christ who live as His loving witnesses, sharing the everlasting gospel with all people in preparation for His soon return.</div>
+                </div>
+
+                <p>Guided by the Bible and the Holy Spirit, SCMM pursues this mission through Christ-like living, teaching, healing, and serving — reaching communities across our territory through local churches, ministries, and outreach programs.</p>
+
+                <div class="about-stats">
+                    <div class="about-stat">
+                        <div class="stat-number">185</div>
+                        <div class="stat-label">Local Churches</div>
+                    </div>
+                    <div class="about-stat">
+                        <div class="stat-number">83,000+</div>
+                        <div class="stat-label">Members</div>
+                    </div>
+                    <div class="about-stat">
+                        <div class="stat-number">5M+</div>
+                        <div class="stat-label">Territory Population</div>
+                    </div>
+                </div>
+
+                <p><strong>About This Website</strong><br>The SCMM Live Media Center Broadcast Website was created to bring our mission's announcements, live worship broadcasts, and Sabbath programs to members and the wider community — all in one place, updated in real time, and accessible on any device.</p>
+
                 <div class="placeholder-note">
-                    This is placeholder content. Replace this text with your actual about us information.
+                    Statistics and mission details reflect publicly available Adventist Church directory information as of mid-2025. Replace or expand this page with SCMM's own official history, vision statement, and story as needed.
                 </div>
             </div>
         </div>
