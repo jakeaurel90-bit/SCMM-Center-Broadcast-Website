@@ -132,7 +132,7 @@
                     <h1>LIVE MEDIA CENTER</h1>
                 </div>
             </div>
-            <a href="login.html" style="color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; border: 1px solid rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; white-space: nowrap;">Staff Login</a>
+            <a href="login.html" id="staffLoginLink" style="color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; border: 1px solid rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; white-space: nowrap;">Staff Login</a>
         </header>
 
         <div class="viewer-body">
@@ -206,6 +206,12 @@
             highlightActiveSidebarLink('viewer');
             document.getElementById('loader').style.display = 'none';
             document.getElementById('viewer-container').style.display = 'block';
+
+            if (sessionStorage.getItem('scmm_admin_logged') === 'true') {
+                const loginLink = document.getElementById('staffLoginLink');
+                loginLink.href = 'index.html';
+                loginLink.innerText = 'Back to Dashboard';
+            }
 
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js').catch(e => console.error('SW registration failed:', e));
