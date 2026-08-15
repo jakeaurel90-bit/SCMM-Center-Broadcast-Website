@@ -40,7 +40,7 @@
         }
         .page-header { background-color: var(--bg-dark-blue); padding: 20px 30px; display: flex; align-items: center; gap: 15px; border-bottom: 2px solid rgba(255,255,255,0.05); }
         .page-header h1 { color: var(--text-light); font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
-        .page-body { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        .page-body { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
         .content-card { background-color: var(--text-light); border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .content-card h2 { color: var(--bg-dark-blue); font-size: 20px; margin-bottom: 15px; }
         .content-card p { color: #444; font-size: 14px; line-height: 1.7; margin-bottom: 15px; }
@@ -54,7 +54,9 @@
         .org-level-4 { background: #f4f4f4; color: #333; border: 1px dashed #bbb; }
         .org-level-name { font-weight: bold; font-size: 14.5px; }
         .org-level-desc { font-size: 12px; opacity: 0.85; margin-top: 3px; }
-        .org-connector { text-align: center; color: var(--accent-gold); font-size: 14px; margin: 2px 0 2px calc(var(--depth, 0) * 28px); }
+        .org-connector { display: flex; flex-direction: column; align-items: center; margin: 8px 0 8px calc(var(--depth, 0) * 28px); }
+        .org-connector .arrow-stem { width: 10px; height: 20px; background: var(--accent-gold); }
+        .org-connector .arrow-head { width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 18px solid var(--accent-gold); margin-top: -1px; }
     </style>
 </head>
 <body>
@@ -88,25 +90,25 @@
                         <div class="org-level-name">General Conference of Seventh-day Adventists</div>
                         <div class="org-level-desc">The worldwide headquarters of the Church, based in Silver Spring, Maryland, USA. It oversees the entire global Adventist movement.</div>
                     </div>
-                    <div class="org-connector" style="--depth:0;">↓</div>
+                    <div class="org-connector" style="--depth:0;"><div class="arrow-stem"></div><div class="arrow-head"></div></div>
 
                     <div class="org-level org-level-1" style="--depth:1;">
                         <div class="org-level-name">Southern Asia-Pacific Division</div>
                         <div class="org-level-desc">A regional arm of the General Conference overseeing Adventist work across the Philippines and neighboring countries in the Asia-Pacific region.</div>
                     </div>
-                    <div class="org-connector" style="--depth:1;">↓</div>
+                    <div class="org-connector" style="--depth:1;"><div class="arrow-stem"></div><div class="arrow-head"></div></div>
 
                     <div class="org-level org-level-2" style="--depth:2;">
                         <div class="org-level-name">Southeastern Philippine Union Mission (SEPUM)</div>
                         <div class="org-level-desc">The union-level body overseeing Adventist missions across Southeastern Mindanao, including Davao and the surrounding provinces.</div>
                     </div>
-                    <div class="org-connector" style="--depth:2;">↓</div>
+                    <div class="org-connector" style="--depth:2;"><div class="arrow-stem"></div><div class="arrow-head"></div></div>
 
                     <div class="org-level org-level-3" style="--depth:3;">
                         <div class="org-level-name">South Central Mindanao Mission (SCMM)</div>
                         <div class="org-level-desc">Our local mission field, serving Cotabato City, Kidapawan City, Tacurong City, and the provinces of Maguindanao, North Cotabato, and Sultan Kudarat.</div>
                     </div>
-                    <div class="org-connector" style="--depth:3;">↓</div>
+                    <div class="org-connector" style="--depth:3;"><div class="arrow-stem"></div><div class="arrow-head"></div></div>
 
                     <div class="org-level org-level-4" style="--depth:4;">
                         <div class="org-level-name">Local Churches and Congregations</div>
