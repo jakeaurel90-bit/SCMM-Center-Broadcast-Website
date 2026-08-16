@@ -13,17 +13,127 @@ const PAGES_DIR = path.join(__dirname, 'broadcast');
 app.use(express.static(PAGES_DIR));
 
 // Admin credentials - set these in Render's Environment Variables, NOT hardcoded here,
-// so they never sit in your GitHub repo either. Fallback values below are just for local testing.
+// so they never sit in your GitHub repo either. These act as the starting/bootstrap
+// account only; once someone changes a password or adds a staff account from
+// Settings, real accounts live in Firebase at /adminAccounts.json instead.
 const ADMIN_USER = process.env.ADMIN_USER || "SCMM";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "scmm2026admin";
 
+async function getAdminAccounts() {
+    try {
+        const r = await fetch(FIREBASE_DB_URL + "/adminAccounts.json?t=" + Date.now(), {
+            cache: "no-store"
+        });
+        if (r.ok) {
+            const data = await r.json();
+            if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+                return data;
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load admin accounts, using bootstrap account:", e);
+    }
+    // No accounts saved yet - fall back to the single bootstrap account from env vars.
+    return { [ADMIN_USER]: ADMIN_PASSWORD };
+}
+
+async function saveAdminAccounts(accounts) {
+    await fetch(FIREBASE_DB_URL + "/adminAccounts.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accounts)
+    });
+}
+
 // Login check happens here on the server, never exposed in browser-visible code.
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body || {};
-    if (username === ADMIN_USER && password === ADMIN_PASSWORD) {
+    const accounts = await getAdminAccounts();
+    if (username && accounts[username] === password) {
         res.json({ success: true });
     } else {
         res.status(401).json({ success: false });
+    }
+});
+
+// Change your own password. Requires your current password as proof.
+app.post('/api/change-password', async (req, res) => {
+    try {
+        const { username, currentPassword, newPassword } = req.body || {};
+        if (!username || !currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: "Missing fields." });
+        }
+        const accounts = await getAdminAccounts();
+        if (accounts[username] !== currentPassword) {
+            return res.status(401).json({ success: false, message: "Current password is incorrect." });
+        }
+        accounts[username] = newPassword;
+        await saveAdminAccounts(accounts);
+        res.json({ success: true });
+    } catch (e) {
+        console.error("Change password failed:", e);
+        res.status(500).json({ success: false, message: "Server error." });
+    }
+});
+
+// Add a new staff account. Requires an existing admin's own password as proof.
+app.post('/api/add-account', async (req, res) => {
+    try {
+        const { authUsername, authPassword, newUsername, newPassword } = req.body || {};
+        if (!authUsername || !authPassword || !newUsername || !newPassword) {
+            return res.status(400).json({ success: false, message: "Missing fields." });
+        }
+        const accounts = await getAdminAccounts();
+        if (accounts[authUsername] !== authPassword) {
+            return res.status(401).json({ success: false, message: "Your current password is incorrect." });
+        }
+        if (accounts[newUsername]) {
+            return res.status(409).json({ success: false, message: "That username already exists." });
+        }
+        accounts[newUsername] = newPassword;
+        await saveAdminAccounts(accounts);
+        res.json({ success: true });
+    } catch (e) {
+        console.error("Add account failed:", e);
+        res.status(500).json({ success: false, message: "Server error." });
+    }
+});
+
+// Remove a staff account. Requires an existing admin's own password as proof,
+// and always leaves at least one account so nobody gets locked out.
+app.post('/api/remove-account', async (req, res) => {
+    try {
+        const { authUsername, authPassword, targetUsername } = req.body || {};
+        if (!authUsername || !authPassword || !targetUsername) {
+            return res.status(400).json({ success: false, message: "Missing fields." });
+        }
+        const accounts = await getAdminAccounts();
+        if (accounts[authUsername] !== authPassword) {
+            return res.status(401).json({ success: false, message: "Your current password is incorrect." });
+        }
+        if (!accounts[targetUsername]) {
+            return res.status(404).json({ success: false, message: "Account not found." });
+        }
+        if (Object.keys(accounts).length <= 1) {
+            return res.status(400).json({ success: false, message: "Can't remove the last remaining account." });
+        }
+        delete accounts[targetUsername];
+        await saveAdminAccounts(accounts);
+        res.json({ success: true });
+    } catch (e) {
+        console.error("Remove account failed:", e);
+        res.status(500).json({ success: false, message: "Server error." });
+    }
+});
+
+// Lists staff usernames only (never passwords) so Settings can display who has access.
+app.get('/api/list-accounts', async (req, res) => {
+    try {
+        const accounts = await getAdminAccounts();
+        res.json({ success: true, usernames: Object.keys(accounts) });
+    } catch (e) {
+        console.error("List accounts failed:", e);
+        res.status(500).json({ success: false, usernames: [] });
     }
 });
 

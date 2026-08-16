@@ -74,6 +74,7 @@
 
                 if (data.success) {
                     sessionStorage.setItem('scmm_admin_logged', 'true');
+                    sessionStorage.setItem('scmm_admin_username', userInput);
                     window.location.href = 'index.html';
                 } else {
                     errorDiv.style.display = 'block';
