@@ -40,11 +40,21 @@
         }
         .page-header { background-color: var(--bg-dark-blue); padding: 20px 30px; display: flex; align-items: center; gap: 15px; border-bottom: 2px solid rgba(255,255,255,0.05); }
         .page-header h1 { color: var(--text-light); font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
-        .page-body { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        .page-body { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
         .content-card { background-color: var(--text-light); border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .content-card h2 { color: var(--bg-dark-blue); font-size: 20px; margin-bottom: 15px; }
         .content-card p { color: #444; font-size: 14px; line-height: 1.7; margin-bottom: 15px; }
         .placeholder-note { background: rgba(226,177,60,0.12); border-left: 4px solid var(--accent-gold); padding: 12px 16px; border-radius: 6px; font-size: 12.5px; color: #7a5c14; margin-top: 20px; }
+        .roster-heading { color: var(--bg-dark-blue); font-size: 16px; text-transform: uppercase; letter-spacing: 1px; margin: 30px 0 16px; padding-bottom: 8px; border-bottom: 3px solid var(--accent-gold); }
+        .roster-heading:first-of-type { margin-top: 10px; }
+        .roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+        .roster-card { background: #f7f8fa; border: 1px solid #e8e8e8; border-radius: 10px; padding: 20px 16px; text-align: center; }
+        .roster-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--bg-dark-blue); color: var(--accent-gold); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; margin: 0 auto 12px; border: 3px solid var(--accent-gold); }
+        .roster-name { color: var(--bg-dark-blue); font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+        .roster-title { color: #666; font-size: 11.5px; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.3px; }
+        @media (max-width: 500px) {
+            .roster-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -73,8 +83,92 @@
             <div class="content-card">
                 <h2>Administrators and Directors</h2>
                 <p>Meet the administrators and directors leading South Central Mindanao Mission.</p>
+
+                <h3 class="roster-heading">Administrators</h3>
+                <div class="roster-grid">
+                    <div class="roster-card">
+                        <div class="roster-avatar">WM</div>
+                        <div class="roster-name">Welnie Q. Miado</div>
+                        <div class="roster-title">President</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">NC</div>
+                        <div class="roster-name">Nilo A. Cabatingan</div>
+                        <div class="roster-title">Treasurer</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">ES</div>
+                        <div class="roster-name">Edwilie D. Seliote</div>
+                        <div class="roster-title">Executive Secretary</div>
+                    </div>
+                </div>
+
+                <h3 class="roster-heading">Directors</h3>
+                <div class="roster-grid">
+                    <div class="roster-card">
+                        <div class="roster-avatar">ZD</div>
+                        <div class="roster-name">Zaldy C. Demagnaong</div>
+                        <div class="roster-title">Health / PGTS</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">GM</div>
+                        <div class="roster-name">Gina C. Miado</div>
+                        <div class="roster-title">Children's Ministries, APM / MSA</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">EP</div>
+                        <div class="roster-name">Eugenio B. Dela Peña</div>
+                        <div class="roster-title">AMR Associate Director, Philanthropic Coordinator</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">RS</div>
+                        <div class="roster-name">Rodelio F. Siaotong</div>
+                        <div class="roster-title">1000 Missionary Movement, AMI SULADS / AMR / Adventist Missions</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">MS</div>
+                        <div class="roster-name">Mylene B. Seliote</div>
+                        <div class="roster-title">Women's Ministries / Ministerial Spouses Association / Adventist Possibilities Ministries Director</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">JB</div>
+                        <div class="roster-name">Junelino D. Basilisco</div>
+                        <div class="roster-title">Field Secretary / NDR / IEL</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">ER</div>
+                        <div class="roster-name">Eddie S. Remonde</div>
+                        <div class="roster-title">Stewardship</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">HR</div>
+                        <div class="roster-name">Henie N. Reyes</div>
+                        <div class="roster-title">Ministerial Secretary, ADMS / Chaplaincy</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">JA</div>
+                        <div class="roster-name">Jasper Dave P. Almocera</div>
+                        <div class="roster-title">Youth / PCM / MAS-Amicus</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">ER</div>
+                        <div class="roster-name">Elfred S. Regoniel</div>
+                        <div class="roster-title">Publishing / SOP</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">RA</div>
+                        <div class="roster-name">Rustico Alpajando</div>
+                        <div class="roster-title">Sabbath School / PM / ASI / ACS</div>
+                    </div>
+                    <div class="roster-card">
+                        <div class="roster-avatar">JM</div>
+                        <div class="roster-name">June Clyde R. Murillo</div>
+                        <div class="roster-title">Education / Communications, PARL / Media</div>
+                    </div>
+                </div>
+
                 <div class="placeholder-note">
-                    This is placeholder content. Replace this text with your actual administrators and directors information.
+                    Photos are shown as initials for now since actual headshots weren't provided as separate image files. Send me individual photos if you'd like real headshots displayed instead.
                 </div>
             </div>
         </div>
