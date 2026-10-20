@@ -86,6 +86,20 @@
         .chronometer-readout-time { color: var(--text-light); font-size: 28px; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
         .chronometer-readout-time span { font-size: 16px; color: var(--text-muted); }
         .chronometer-footer-location { color: var(--text-muted); font-size: 9px; text-transform: uppercase; margin-top: 8px; font-weight: bold; }
+    
+        /* ---- click-to-play videos (no autoplay) ---- */
+        .video-facade { cursor: pointer; display: flex; align-items: center; justify-content: center; background: #0b2545; }
+        .video-facade img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
+        .video-facade .play-badge { position: relative; width: 68px; height: 68px; border-radius: 50%; background: var(--accent-gold); color: #111; font-size: 26px; display: flex; align-items: center; justify-content: center; padding-left: 5px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+        .video-facade .facade-label { position: absolute; left: 14px; bottom: 12px; color: #fff; font-size: 12px; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+        .video-facade:hover .play-badge, .video-facade:focus-visible .play-badge { background: var(--accent-gold-hover); }
+        .video-facade:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
+        @media (max-width: 768px) {
+            header { padding-left: 64px; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .scripture-display-rack { grid-template-columns: 1fr; }
+            .video-container { height: 240px; }
+        }
     </style>
 </head>
 <body>
@@ -273,33 +287,77 @@
             renderPosts(currentPosts);
         }
 
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // Shows a thumbnail + play button. The real player loads only after a click.
+        function videoFacade(embedSrc, thumb, label) {
+            return `
+                <div class="video-container video-facade" data-src="${embedSrc}" role="button" tabindex="0" aria-label="Play video"
+                     onclick="loadEmbed(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();loadEmbed(this);}">
+                    ${thumb ? `<img src="${thumb}" alt="" loading="lazy">` : ''}
+                    <span class="play-badge">&#9654;</span>
+                    <span class="facade-label">${label}</span>
+                </div>`;
+        }
+
+        function loadEmbed(el) {
+            const src = el.dataset.src;
+            if (!src) return;
+            el.classList.remove('video-facade');
+            el.removeAttribute('onclick');
+            el.removeAttribute('onkeydown');
+            el.removeAttribute('role');
+            el.removeAttribute('tabindex');
+            el.innerHTML = '';
+            const frame = document.createElement('iframe');
+            frame.src = src;
+            frame.setAttribute('allowfullscreen', 'true');
+            frame.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share');
+            el.appendChild(frame);
+        }
+
         function parseAndEmbedVideo(text) {
             if (!text) return '';
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const match = text.match(urlRegex);
+            const directUrl = match ? match[0].replace(/[.,;!?)]$/, '') : '';
+
+            let mediaHtml = '';
+
             const fbRegex = /(https?:\/\/(?:www\.)?(?:facebook\.com|fb\.watch|[\w.-]+\/videos\/|[\w.-]+\/live_videos\/)[^\s]+)/g;
             const fbMatch = text.match(fbRegex);
             if (fbMatch) {
                 const rawUrl = fbMatch[0].replace(/[.,;!?)]$/, '');
                 const cleanUrl = encodeURIComponent(rawUrl);
-                return `
-                    <div class="video-container">
-                        <iframe src="https://www.facebook.com/plugins/video.php?href=${cleanUrl}&show_text=false&width=560&autoplay=true&allowfullscreen=true" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
-                    </div>
-                    <a href="${rawUrl}" target="_blank" class="mobile-watch-btn">▶ Watch Live on Facebook (If Mobile App Blocks Player)</a>
-                `;
+                mediaHtml = videoFacade(
+                    `https://www.facebook.com/plugins/video.php?href=${cleanUrl}&amp;show_text=false&amp;width=560&amp;autoplay=true`,
+                    '', 'Facebook video - click to play');
             }
+
             const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
             const ytMatch = ytRegex.exec(text);
             if (ytMatch && ytMatch[1]) {
                 const ytId = ytMatch[1];
-                return `
-                    <div class="video-container">
-                        <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&rel=0" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                mediaHtml = videoFacade(
+                    `https://www.youtube.com/embed/${ytId}?autoplay=1&amp;rel=0`,
+                    `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`, 'YouTube video - click to play');
+            }
+
+            if (directUrl) {
+                mediaHtml += `
+                    <div style="margin-top: 12px; padding: 12px; background: #0b2545; border-radius: 6px; text-align: center;">
+                        <a href="${esc(directUrl)}" target="_blank" rel="noopener" style="color: #e2b13c; font-weight: bold; text-decoration: none; font-size: 14px; word-break: break-all;">
+                            Open the live stream directly: ${esc(directUrl)}
+                        </a>
                     </div>
-                    <a href="https://www.youtube.com/watch?v=${ytId}" target="_blank" class="mobile-watch-btn" style="background-color: #ff0000;">▶ Watch Live on YouTube</a>
                 `;
             }
-            return '';
+
+            return mediaHtml;
         }
+
 
         let lastRenderedPostsHash = "";
 
@@ -323,10 +381,10 @@
                 const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""));
                 card.innerHTML = `
                     <div class="announcement-card-header">
-                        <span class="announcement-title">${post.title}</span>
+                        <span class="announcement-title">${esc(post.title)}</span>
                         <button class="delete-post-btn" onclick="deletePost('${post.id}')">Delete</button>
                     </div>
-                    <div class="scripture-body" style="color: #333; margin-top: 5px;">${post.content}</div>
+                    <div class="scripture-body" style="color: #333; margin-top: 5px; white-space: pre-line;">${esc(post.content)}</div>
                     ${videoEmbedHtml}
                     <div style="font-size: 10px; color: #888; margin-top: 10px; text-transform: uppercase;">Published: ${post.date}</div>
                 `;
