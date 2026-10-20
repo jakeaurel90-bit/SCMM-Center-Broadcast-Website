@@ -100,6 +100,55 @@
             .video-container { height: 240px; }
         }
     </style>
+<!-- scmm-theme:start -->
+<style>
+:root{--bg-dark-blue:#0a4d3c;--panel-blue:#0d5a46;--accent-gold:#d9a21f;--accent-gold-hover:#e8b53a;--text-muted:#5f7a70;--ink:#1d2f2a;--cream:#f7f1e2;--card:#fffbf2;--line:#eadfc6;--teal:#0e6b63;--green:#0b5d4b}
+body,.main-workspace{background:var(--cream)!important}
+#loader{color:var(--green)}
+header{background:var(--card);border-bottom:1px solid var(--line)}
+.header-titles h1{color:var(--green)}.header-titles h2{color:var(--teal)}
+#staffLoginLink{border-color:var(--line)!important;color:var(--teal)!important}
+.sidebar-brand,.site-sidebar{background:linear-gradient(180deg,#0e6b52 0%,#0a4a3b 55%,#07352b 100%);border-right:0}
+.brand-text,.site-sidebar-title{color:#fff}
+.brand-sub{font-size:9px;color:#bfe0d3;letter-spacing:1px;text-align:center;margin-top:3px;line-height:1.4}
+.sidebar-nav,.site-sidebar-nav{border-top:1px solid rgba(255,255,255,.1)}
+.sidebar-nav a,.site-sidebar-link{color:#d9efe6;margin:2px 14px;border-radius:10px;border-left:0}
+.sidebar-nav a:hover,.site-sidebar-link:hover{background:rgba(255,255,255,.1);color:#fff}
+.sidebar-nav a.active,.site-sidebar-link.active{background:var(--cream);color:var(--green);border-left:0}
+.sidebar-quote{margin-top:auto;padding:22px 20px;color:#fff;font-size:12px;line-height:1.5}
+.sidebar-quote b{color:var(--accent-gold);font-size:34px;display:block;line-height:.7}
+.sidebar-quote small{display:block;color:#bfe0d3;margin-top:8px}
+.view-live-btn{background:var(--teal);color:#fff;border-radius:8px}.view-live-btn:hover{background:#12857a}
+.logout-btn{background:#c53030}.logout-btn:hover{background:#d84343}
+.theme-banner{background:linear-gradient(90deg,rgba(6,40,32,.8),rgba(6,40,32,.2)),url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover}
+.theme-subtitle{color:#fff;font-size:14px;margin-top:6px}.theme-subtitle span{color:var(--accent-gold)}
+.post-creation-panel,.announcement-card,.scripture-card,.comment-wall{background:var(--card);border:1px solid var(--line);box-shadow:0 2px 10px rgba(60,50,20,.06);border-radius:14px}
+.announcement-card{border-left:5px solid var(--accent-gold)}
+.post-creation-panel h3,.comment-wall-header,.announcement-title{color:var(--green)}
+.scripture-card-header{color:#7a8a80;border-bottom-color:var(--line)}
+.post-creation-panel input,.post-creation-panel textarea,.comment-form input,.comment-form textarea,.comment-edit-textarea{background:#fff8ea;border:1px solid var(--line);color:var(--ink)}
+::placeholder{color:#a08b5c}
+.post-creation-panel button,.comment-form button,.comment-save-btn{background:linear-gradient(180deg,#12875c,#0a5c3f);color:#fff}
+.post-creation-panel button:disabled,.comment-form button:disabled{background:#9aa8a2}
+.delete-post-btn,.comment-delete-btn{background:#c53030}
+.comment-item{background:#f6efdc}.comment-item .comment-text{color:var(--ink)}
+.comment-item .comment-name{color:var(--green)}.comment-item .comment-date{color:#8a7a55}
+.comment-edit-btn,.comment-cancel-btn{background:#e8dfc6;color:var(--ink)}
+.right-col{display:flex;flex-direction:column;gap:16px;align-self:start}
+.system-status-sidebar{background:var(--card);border:1px solid var(--line);border-radius:14px;color:var(--ink)}
+.sidebar-panel-header{color:var(--green);border-bottom-color:var(--line)}
+.chronometer-enclosure{background:radial-gradient(circle at center,#0f6a52 0%,#07382d 100%);border-color:var(--accent-gold)}
+.chronometer-readout-time span,.chronometer-footer-location{color:#bfe0d3}
+.mission-card{border:1px solid var(--line);background:#fdf6e4;border-radius:14px;padding:18px}
+.mission-card h4{color:var(--green);font-size:12px;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px}
+.mission-item{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;color:var(--ink);text-transform:uppercase;padding:10px 0}
+.mission-item+.mission-item{border-top:1px solid var(--line)}.mission-ico{width:34px;height:34px;flex:none}
+.help-card{background:#e6efe2;border-radius:14px;padding:16px;text-align:center;color:var(--ink);font-size:13px}
+.help-card small{display:block;color:#5f7a70;margin-top:2px}
+.help-card a{display:inline-block;margin-top:10px;background:var(--teal);color:#fff;padding:9px 18px;border-radius:8px;font-weight:700;font-size:12px;text-decoration:none;text-transform:uppercase}
+footer{background-color:#0a4d3c!important;color:#cfe5db!important}
+</style>
+<!-- scmm-theme:end -->
 </head>
 <body>
 
@@ -110,6 +159,7 @@
         <aside class="sidebar-brand" id="siteSidebar">
             <img src="/sda-logo.png" alt="Seventh-day Adventist Church Symbol" class="brand-logo">
             <div class="brand-text">SCMM</div>
+<div class="brand-sub">SOUTH CENTRAL<br>MINDANAO MISSION</div>
             <nav class="sidebar-nav">
                 <a href="/index.html" data-page="dashboard">Dashboard</a>
                 <a href="/viewer.html" data-page="viewer">Live Broadcast</a>
@@ -119,7 +169,8 @@
                 <a href="/administrators.html" data-page="administrators">Administrators and Directors</a>
                 <a href="/settings.html" data-page="settings">Settings</a>
             </nav>
-        </aside>
+<div class="sidebar-quote"><b>&ldquo;</b>Blessed to be a blessing.<br>Committed to serve.<br>Driven by hope.<small>Matthew 28:19-20</small></div>
+</aside>
 
         <div class="main-workspace">
             <header>
@@ -145,6 +196,7 @@
                     <div class="theme-banner">
                         <div class="theme-tag" id="theme-tag">This Month's Theme:</div>
                         <div class="theme-title" id="theme-title">REACHING MINDS, TOUCHING HEARTS.</div>
+<div class="theme-subtitle">Sharing Hope. <span>Changing Lives. For Today and for Eternity.</span></div>
                     </div>
 
                     <div class="post-creation-panel">
@@ -181,7 +233,8 @@
                     </div>
                 </div>
 
-                <aside class="system-status-sidebar">
+                <div class="right-col">
+<aside class="system-status-sidebar">
                     <div class="sidebar-panel-header">System Status</div>
                     <div class="chronometer-enclosure">
                         <div class="chronometer-header-date" id="chrono-date">MONDAY, AUGUST 10, 2026</div>
@@ -190,6 +243,12 @@
                     </div>
                     <div class="sync-status" id="sync-status">Cloud sync: connecting...</div>
                 </aside>
+<div class="mission-card"><h4>Our Mission Focuses On</h4>
+<div class="mission-item"><svg class="mission-ico" viewBox="0 0 24 24" fill="#0f9d8a"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.6 3-6 7-6s7 2.4 7 6z"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c3 0 5 1.8 5 4.6V20h-4.5z"/></svg>Non-Seventh-day Adventist Christians</div>
+<div class="mission-item"><svg class="mission-ico" viewBox="0 0 24 24" fill="#f59e0b"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.6 3-6 7-6s7 2.4 7 6z"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c3 0 5 1.8 5 4.6V20h-4.5z"/></svg>Non-Christians</div></div>
+<div class="help-card"><b>Need help or have a question?</b><small>We're here to support you.</small><a href="mailto:jakeaurel90@gmail.com">Contact Admin</a></div>
+
+</div>
             </div>
             
             <footer style="margin-top: 50px; padding: 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); color: #888; background-color: #0b2545;">
