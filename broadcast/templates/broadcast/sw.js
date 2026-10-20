@@ -1,7 +1,7 @@
-// Minimal service worker — just enough to make the site installable as an app.
-// Does not cache posts/comments (those must always be fetched fresh from the cloud).
+// Service worker: makes the site installable and handles push notifications.
+// Pages are always fetched fresh; the cache is only an offline fallback.
 
-const CACHE_NAME = 'scmm-app-shell-v3';
+const CACHE_NAME = 'scmm-app-shell-v4';
 const APP_SHELL = [
   '/viewer.html',
   '/index.html',
@@ -11,7 +11,10 @@ const APP_SHELL = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then((cache) =>
+      // Add files one by one so one missing file can't break the install.
+      Promise.all(APP_SHELL.map((url) => cache.add(url).catch(() => {})))
+    )
   );
   self.skipWaiting();
 });
@@ -26,13 +29,18 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Network-first: always try to get the freshest page/data, fall back to cache if offline.
+  const req = event.request;
+  const url = new URL(req.url);
+  // Only handle plain GETs for this site's own files; leave everything else to the browser.
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api/')) return;
+
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(req, { cache: 'no-store' })
+      .catch(() => caches.match(req).then((hit) => hit || Response.error()))
   );
 });
 
-// Show a system notification when the server pushes a new post alert.
 self.addEventListener('push', (event) => {
   let data = { title: 'SCMM Live Media Center', body: 'A new announcement was just posted.' };
   try {
@@ -52,7 +60,6 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Tapping the notification opens (or focuses) the viewer page.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
