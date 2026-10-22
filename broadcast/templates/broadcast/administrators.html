@@ -264,5 +264,100 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
             }
         };
     </script>
+<!-- scmm-photos:start -->
+<style>
+.roster-avatar { width: 96px; height: 96px; }
+.roster-avatar.has-photo { background-size: cover; background-position: center; background-repeat: no-repeat; color: transparent; }
+.photo-upload-btn { margin-top: 12px; background: #e2b13c; color: #111; border: 0; padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; cursor: pointer; }
+.photo-upload-btn:hover { background: #f0c24f; }
+.photo-upload-btn:disabled { background: #bbb; cursor: wait; }
+</style>
+<script>
+(function () {
+    var DB = "https://scmm-broadcast-default-rtdb.asia-southeast1.firebasedatabase.app";
+    var CLOUD = "daluu6m1n", PRESET = "scmm_uploads";
+    var isAdmin = sessionStorage.getItem('scmm_admin_logged') === 'true';
+
+    function keyOf(name) {
+        return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+    function cardKey(card) {
+        return keyOf(card.querySelector('.roster-name').textContent.trim());
+    }
+    function showPhoto(avatar, url) {
+        if (!/^https:\/\/res\.cloudinary\.com\//.test(url)) return;
+        avatar.style.backgroundImage = 'url("' + url + '")';
+        avatar.classList.add('has-photo');
+    }
+    async function uploadPhoto(file) {
+        var fd = new FormData();
+        fd.append('file', file);
+        fd.append('upload_preset', PRESET);
+        var res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD + '/image/upload', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error('Upload failed (' + res.status + ')');
+        var data = await res.json();
+        return data.secure_url.replace('/upload/', '/upload/c_fill,g_face,w_300,h_300,q_auto,f_auto/');
+    }
+    async function savePhoto(key, url) {
+        var res = await fetch(DB + '/adminPhotos/' + key + '.json', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(url)
+        });
+        if (!res.ok) throw new Error('Could not save photo (' + res.status + ')');
+    }
+    function addUploadButton(card, hasPhoto) {
+        var avatar = card.querySelector('.roster-avatar');
+        var key = cardKey(card);
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.style.display = 'none';
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'photo-upload-btn';
+        btn.textContent = hasPhoto ? 'Change photo' : 'Upload photo';
+        btn.addEventListener('click', function () { input.click(); });
+        input.addEventListener('change', async function () {
+            var file = input.files[0];
+            if (!file) return;
+            if (!/^image\//.test(file.type)) { alert('Please choose an image file.'); input.value = ''; return; }
+            if (file.size > 8 * 1024 * 1024) { alert('Please choose a photo under 8 MB.'); input.value = ''; return; }
+            btn.disabled = true;
+            btn.textContent = 'Uploading...';
+            try {
+                var url = await uploadPhoto(file);
+                await savePhoto(key, url);
+                showPhoto(avatar, url);
+                btn.textContent = 'Change photo';
+            } catch (e) {
+                alert('Photo upload failed: ' + e.message);
+                btn.textContent = avatar.classList.contains('has-photo') ? 'Change photo' : 'Upload photo';
+            } finally {
+                btn.disabled = false;
+                input.value = '';
+            }
+        });
+        card.appendChild(btn);
+        card.appendChild(input);
+    }
+    async function init() {
+        var photos = {};
+        try {
+            var res = await fetch(DB + '/adminPhotos.json?t=' + Date.now(), { cache: 'no-store' });
+            if (res.ok) photos = (await res.json()) || {};
+        } catch (e) { console.error('Photo load failed:', e); }
+        document.querySelectorAll('.roster-card').forEach(function (card) {
+            var avatar = card.querySelector('.roster-avatar');
+            if (!avatar) return;
+            var url = photos[cardKey(card)];
+            if (url) showPhoto(avatar, url);
+            if (isAdmin) addUploadButton(card, avatar.classList.contains('has-photo'));
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+<!-- scmm-photos:end -->
 </body>
 </html>
