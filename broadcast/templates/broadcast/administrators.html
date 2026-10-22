@@ -237,6 +237,82 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                     </div>
                 </div>
 
+                <!-- scmm-staff:start -->
+                <h3 class="roster-heading">Staff</h3>
+                <div class="roster-grid">
+                    <div class="roster-card" data-id="staff-1">
+                        <div class="roster-avatar">LS</div>
+                        <div class="roster-name">Lendon U. Sedurane</div>
+                        <div class="roster-title">Accountant 3 - Chief Accountant</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-2">
+                        <div class="roster-avatar">KB</div>
+                        <div class="roster-name">Karl Owen G. Bareng</div>
+                        <div class="roster-title">Accountant 2 - Receiving</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-3">
+                        <div class="roster-avatar">RS</div>
+                        <div class="roster-name">Rose Mae F. Solerano</div>
+                        <div class="roster-title">Accountant 1 - Disbursing</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-4">
+                        <div class="roster-avatar">JL</div>
+                        <div class="roster-name">John Mark Lagunday</div>
+                        <div class="roster-title">Auditor</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-5">
+                        <div class="roster-avatar">RP</div>
+                        <div class="roster-name">Reynaldo B. Piamonte</div>
+                        <div class="roster-title">Auditor</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-6">
+                        <div class="roster-avatar">DB</div>
+                        <div class="roster-name">Debbie C. Bonjoc</div>
+                        <div class="roster-title">Administrative Assistant 3</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-7">
+                        <div class="roster-avatar">MC</div>
+                        <div class="roster-name">Methyl M. Credo</div>
+                        <div class="roster-title">Administrative Assistant 2</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-8">
+                        <div class="roster-avatar">MP</div>
+                        <div class="roster-name">Mae P. Peligros</div>
+                        <div class="roster-title">Administrative Assistant 1 / ACMS Coordinator</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-9">
+                        <div class="roster-avatar">JL</div>
+                        <div class="roster-name">Joris Bong P. Lagra</div>
+                        <div class="roster-title">Hope Channel Media</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-10">
+                        <div class="roster-avatar">JS</div>
+                        <div class="roster-name">Joynob L. Santillan</div>
+                        <div class="roster-title">Maintenance Crew</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-11">
+                        <div class="roster-avatar">EC</div>
+                        <div class="roster-name">Eduard A. Credo</div>
+                        <div class="roster-title">Property Custodian</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-12">
+                        <div class="roster-avatar">GC</div>
+                        <div class="roster-name">Gervinly V. Cabil</div>
+                        <div class="roster-title">Security Guard</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-13">
+                        <div class="roster-avatar">GA</div>
+                        <div class="roster-name">Gerald E. Acoram</div>
+                        <div class="roster-title">Farm Manager</div>
+                    </div>
+                    <div class="roster-card" data-id="staff-14">
+                        <div class="roster-avatar">CC</div>
+                        <div class="roster-name">Clifford B. Candog</div>
+                        <div class="roster-title">Farm Supervisor</div>
+                    </div>
+                </div>
+
+                <!-- scmm-staff:end -->
                 <div class="placeholder-note">
                     Photos are shown as initials for now since actual headshots weren't provided as separate image files. Send me individual photos if you'd like real headshots displayed instead.
                 </div>
@@ -268,9 +344,20 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
 <style>
 .roster-avatar { width: 96px; height: 96px; }
 .roster-avatar.has-photo { background-size: cover; background-position: center; background-repeat: no-repeat; color: transparent; }
-.photo-upload-btn { margin-top: 12px; background: #e2b13c; color: #111; border: 0; padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; cursor: pointer; }
+.card-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.photo-upload-btn, .card-edit-btn { border-radius: 6px; padding: 7px 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; cursor: pointer; }
+.photo-upload-btn { background: #e2b13c; color: #111; border: 0; }
 .photo-upload-btn:hover { background: #f0c24f; }
 .photo-upload-btn:disabled { background: #bbb; cursor: wait; }
+.card-edit-btn { background: #fff; color: #0b5d4b; border: 1px solid #0b5d4b; }
+.card-edit-btn:hover { background: #eef6f2; }
+.edit-box { margin-top: 6px; }
+.edit-box input, .edit-box textarea { width: 100%; padding: 8px 10px; margin-bottom: 6px; border: 1px solid #d8cba5; border-radius: 6px; font: inherit; font-size: 13px; background: #fff8ea; color: #1d2f2a; }
+.edit-box textarea { resize: vertical; min-height: 54px; }
+.edit-actions { display: flex; gap: 6px; justify-content: center; }
+.edit-actions button { border: 0; border-radius: 5px; padding: 6px 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+.edit-save { background: #0b5d4b; color: #fff; }
+.edit-cancel { background: #e8dfc6; color: #1d2f2a; }
 </style>
 <script>
 (function () {
@@ -281,13 +368,23 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
     function keyOf(name) {
         return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     }
-    function cardKey(card) {
-        return keyOf(card.querySelector('.roster-name').textContent.trim());
+    function initials(name) {
+        var w = name.replace(/[^A-Za-z\u00C0-\u024F ]/g, ' ').split(/\s+/).filter(Boolean);
+        if (!w.length) return '?';
+        return (w[0][0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase();
     }
     function showPhoto(avatar, url) {
         if (!/^https:\/\/res\.cloudinary\.com\//.test(url)) return;
         avatar.style.backgroundImage = 'url("' + url + '")';
         avatar.classList.add('has-photo');
+    }
+    async function putJson(path, value) {
+        var res = await fetch(DB + path + '.json', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(value)
+        });
+        if (!res.ok) throw new Error('Could not save (' + res.status + ')');
     }
     async function uploadPhoto(file) {
         var fd = new FormData();
@@ -298,25 +395,20 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
         var data = await res.json();
         return data.secure_url.replace('/upload/', '/upload/c_fill,g_face,w_300,h_300,q_auto,f_auto/');
     }
-    async function savePhoto(key, url) {
-        var res = await fetch(DB + '/adminPhotos/' + key + '.json', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(url)
-        });
-        if (!res.ok) throw new Error('Could not save photo (' + res.status + ')');
+    function makeBtn(cls, text) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = cls;
+        b.textContent = text;
+        return b;
     }
-    function addUploadButton(card, hasPhoto) {
+    function addPhotoButton(card, actions, hasPhoto) {
         var avatar = card.querySelector('.roster-avatar');
-        var key = cardKey(card);
         var input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
         input.style.display = 'none';
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'photo-upload-btn';
-        btn.textContent = hasPhoto ? 'Change photo' : 'Upload photo';
+        var btn = makeBtn('photo-upload-btn', hasPhoto ? 'Change photo' : 'Upload photo');
         btn.addEventListener('click', function () { input.click(); });
         input.addEventListener('change', async function () {
             var file = input.files[0];
@@ -327,7 +419,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
             btn.textContent = 'Uploading...';
             try {
                 var url = await uploadPhoto(file);
-                await savePhoto(key, url);
+                await putJson('/adminPhotos/' + card.dataset.id, url);
                 showPhoto(avatar, url);
                 btn.textContent = 'Change photo';
             } catch (e) {
@@ -338,21 +430,92 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                 input.value = '';
             }
         });
-        card.appendChild(btn);
-        card.appendChild(input);
+        actions.appendChild(btn);
+        actions.appendChild(input);
+    }
+    function addEditButton(card, actions) {
+        var btn = makeBtn('card-edit-btn', 'Edit details');
+        btn.addEventListener('click', function () { startEdit(card, actions); });
+        actions.appendChild(btn);
+    }
+    function startEdit(card, actions) {
+        var nameEl = card.querySelector('.roster-name');
+        var titleEl = card.querySelector('.roster-title');
+        var avatar = card.querySelector('.roster-avatar');
+        var box = document.createElement('div');
+        box.className = 'edit-box';
+        var n = document.createElement('input');
+        n.type = 'text'; n.maxLength = 80; n.placeholder = 'Full name'; n.value = nameEl.textContent.trim();
+        var t = document.createElement('textarea');
+        t.maxLength = 200; t.placeholder = 'Position / title'; t.value = titleEl.textContent.trim();
+        var row = document.createElement('div');
+        row.className = 'edit-actions';
+        var save = makeBtn('edit-save', 'Save');
+        var cancel = makeBtn('edit-cancel', 'Cancel');
+        row.appendChild(save);
+        row.appendChild(cancel);
+        box.appendChild(n); box.appendChild(t); box.appendChild(row);
+        nameEl.style.display = 'none';
+        titleEl.style.display = 'none';
+        actions.style.display = 'none';
+        card.insertBefore(box, actions);
+        function close() {
+            box.remove();
+            nameEl.style.display = '';
+            titleEl.style.display = '';
+            actions.style.display = '';
+        }
+        cancel.addEventListener('click', close);
+        save.addEventListener('click', async function () {
+            var name = n.value.trim(), title = t.value.trim();
+            if (!name) { alert('Please enter a name.'); return; }
+            save.disabled = true;
+            save.textContent = 'Saving...';
+            try {
+                await putJson('/adminRoster/' + card.dataset.id, { name: name, title: title });
+                nameEl.textContent = name;
+                titleEl.textContent = title;
+                if (!avatar.classList.contains('has-photo')) avatar.textContent = initials(name);
+                close();
+            } catch (e) {
+                alert('Could not save: ' + e.message);
+                save.disabled = false;
+                save.textContent = 'Save';
+            }
+        });
+    }
+    async function loadJson(path) {
+        try {
+            var res = await fetch(DB + path + '.json?t=' + Date.now(), { cache: 'no-store' });
+            if (res.ok) return (await res.json()) || {};
+        } catch (e) { console.error('Load failed:', path, e); }
+        return {};
     }
     async function init() {
-        var photos = {};
-        try {
-            var res = await fetch(DB + '/adminPhotos.json?t=' + Date.now(), { cache: 'no-store' });
-            if (res.ok) photos = (await res.json()) || {};
-        } catch (e) { console.error('Photo load failed:', e); }
-        document.querySelectorAll('.roster-card').forEach(function (card) {
+        var cards = document.querySelectorAll('.roster-card');
+        cards.forEach(function (card) {
+            if (!card.dataset.id) card.dataset.id = keyOf(card.querySelector('.roster-name').textContent.trim());
+        });
+        var results = await Promise.all([loadJson('/adminPhotos'), loadJson('/adminRoster')]);
+        var photos = results[0], roster = results[1];
+        cards.forEach(function (card) {
             var avatar = card.querySelector('.roster-avatar');
             if (!avatar) return;
-            var url = photos[cardKey(card)];
-            if (url) showPhoto(avatar, url);
-            if (isAdmin) addUploadButton(card, avatar.classList.contains('has-photo'));
+            var id = card.dataset.id;
+            var r = roster[id];
+            if (r && typeof r === 'object') {
+                if (r.name) card.querySelector('.roster-name').textContent = r.name;
+                if (typeof r.title === 'string') card.querySelector('.roster-title').textContent = r.title;
+                if (r.name) avatar.textContent = initials(r.name);
+            }
+            if (photos[id]) showPhoto(avatar, photos[id]);
+            if (isAdmin) {
+                var actions = document.createElement('div');
+                actions.className = 'card-actions';
+                addPhotoButton(card, actions, avatar.classList.contains('has-photo'));
+                addEditButton(card, actions);
+                card.appendChild(actions);
+            }
         });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
