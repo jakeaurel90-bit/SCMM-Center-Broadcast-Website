@@ -310,6 +310,21 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                         <div class="roster-name">Clifford B. Candog</div>
                         <div class="roster-title">Farm Supervisor</div>
                     </div>
+                    <div class="roster-card staff-slot" data-id="staff-15" style="display:none">
+                        <div class="roster-avatar">+</div>
+                        <div class="roster-name">Empty slot</div>
+                        <div class="roster-title">Click Edit details to add a staff member</div>
+                    </div>
+                    <div class="roster-card staff-slot" data-id="staff-16" style="display:none">
+                        <div class="roster-avatar">+</div>
+                        <div class="roster-name">Empty slot</div>
+                        <div class="roster-title">Click Edit details to add a staff member</div>
+                    </div>
+                    <div class="roster-card staff-slot" data-id="staff-17" style="display:none">
+                        <div class="roster-avatar">+</div>
+                        <div class="roster-name">Empty slot</div>
+                        <div class="roster-title">Click Edit details to add a staff member</div>
+                    </div>
                 </div>
 
                 <!-- scmm-staff:end -->
@@ -342,8 +357,11 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
     </script>
 <!-- scmm-photos:start -->
 <style>
-.roster-avatar { width: 96px; height: 96px; }
-.roster-avatar.has-photo { background-size: cover; background-position: center; background-repeat: no-repeat; color: transparent; }
+.roster-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.roster-avatar { width: 100%; max-width: 260px; height: auto; aspect-ratio: 1 / 1; border-radius: 10px; font-size: 56px; margin: 0 auto 14px; }
+.roster-avatar.has-photo { background-size: cover; background-position: center 15%; background-repeat: no-repeat; background-color: #e8dfc6; color: transparent; }
+.staff-slot.is-empty { border-style: dashed; }
+.staff-slot.is-empty .roster-title { font-style: italic; }
 .card-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
 .photo-upload-btn, .card-edit-btn { border-radius: 6px; padding: 7px 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; cursor: pointer; }
 .photo-upload-btn { background: #e2b13c; color: #111; border: 0; }
@@ -375,7 +393,8 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
     }
     function showPhoto(avatar, url) {
         if (!/^https:\/\/res\.cloudinary\.com\//.test(url)) return;
-        avatar.style.backgroundImage = 'url("' + url + '")';
+        var full = url.replace(/\/upload\/c_[^\/]+\//, '/upload/c_limit,w_800,h_1000,q_auto,f_auto/');
+        avatar.style.backgroundImage = 'url("' + full + '")';
         avatar.classList.add('has-photo');
     }
     async function putJson(path, value) {
@@ -393,7 +412,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
         var res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD + '/image/upload', { method: 'POST', body: fd });
         if (!res.ok) throw new Error('Upload failed (' + res.status + ')');
         var data = await res.json();
-        return data.secure_url.replace('/upload/', '/upload/c_fill,g_face,w_300,h_300,q_auto,f_auto/');
+        return data.secure_url.replace('/upload/', '/upload/c_limit,w_800,h_1000,q_auto,f_auto/');
     }
     function makeBtn(cls, text) {
         var b = document.createElement('button');
@@ -445,9 +464,9 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
         var box = document.createElement('div');
         box.className = 'edit-box';
         var n = document.createElement('input');
-        n.type = 'text'; n.maxLength = 80; n.placeholder = 'Full name'; n.value = nameEl.textContent.trim();
+        n.type = 'text'; n.maxLength = 80; n.placeholder = 'Full name'; n.value = card.classList.contains('is-empty') ? '' : nameEl.textContent.trim();
         var t = document.createElement('textarea');
-        t.maxLength = 200; t.placeholder = 'Position / title'; t.value = titleEl.textContent.trim();
+        t.maxLength = 200; t.placeholder = 'Position / title'; t.value = card.classList.contains('is-empty') ? '' : titleEl.textContent.trim();
         var row = document.createElement('div');
         row.className = 'edit-actions';
         var save = makeBtn('edit-save', 'Save');
@@ -476,6 +495,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                 nameEl.textContent = name;
                 titleEl.textContent = title;
                 if (!avatar.classList.contains('has-photo')) avatar.textContent = initials(name);
+                card.classList.remove('is-empty');
                 close();
             } catch (e) {
                 alert('Could not save: ' + e.message);
@@ -507,6 +527,10 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                 if (r.name) card.querySelector('.roster-name').textContent = r.name;
                 if (typeof r.title === 'string') card.querySelector('.roster-title').textContent = r.title;
                 if (r.name) avatar.textContent = initials(r.name);
+            }
+            if (card.classList.contains('staff-slot')) {
+                if (r && typeof r === 'object' && r.name) { card.style.display = ''; card.classList.remove('is-empty'); }
+                else if (isAdmin) { card.style.display = ''; card.classList.add('is-empty'); }
             }
             if (photos[id]) showPhoto(avatar, photos[id]);
             if (isAdmin) {
