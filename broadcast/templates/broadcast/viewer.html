@@ -180,6 +180,43 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
 .account-remove-btn{background:#c53030}.account-remove-btn:disabled{background:#c9c3b0}
 </style>
 <!-- scmm-theme:end -->
+<!-- scmm-viewer-sections:start -->
+<style>
+.v-hl{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.hl-card{border-radius:14px;padding:18px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px;box-shadow:0 2px 10px rgba(60,50,20,.06)}
+.hl-live{background:linear-gradient(135deg,#0e6b52,#0a4a3b);border:0}
+.hl-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);display:flex;align-items:center;gap:8px}
+.hl-live .hl-label{color:#bfe0d3}
+.hl-title{font-size:17px;font-weight:700;line-height:1.3;color:var(--green)}
+.hl-live .hl-title{color:#fff}
+.hl-meta{font-size:11px;color:#8a7a55;text-transform:uppercase}
+.hl-live .hl-meta{color:#bfe0d3}
+.hl-btn{align-self:flex-start;margin-top:6px;border:0;border-radius:8px;padding:9px 16px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;background:var(--accent-gold);color:#111}
+.hl-news .hl-btn{background:var(--teal);color:#fff}
+.v-dot{width:9px;height:9px;border-radius:50%;background:#e53e3e;flex:none;animation:vpulse 1.6s ease-out infinite}
+@keyframes vpulse{0%{box-shadow:0 0 0 0 rgba(229,62,62,.6)}100%{box-shadow:0 0 0 9px rgba(229,62,62,0)}}
+.v-tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:16px;padding-bottom:2px}
+.v-tabs button{display:flex;align-items:center;gap:8px;white-space:nowrap;border:1px solid var(--line);background:var(--card);color:var(--green);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer}
+.v-tabs button[aria-selected="true"]{background:var(--green);color:#fff;border-color:var(--green)}
+.v-tabs em{font-style:normal;font-size:11px;background:rgba(0,0,0,.12);border-radius:10px;padding:1px 8px}
+.v-badge{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;vertical-align:middle}
+.v-badge.live{background:#e53e3e;color:#fff}
+.v-badge.latest{background:var(--accent-gold);color:#111}
+.v-badge.new{background:#12875c;color:#fff}
+.announcement-card.featured{border-left-width:6px;box-shadow:0 6px 22px rgba(60,50,20,.14)}
+.hl-btn:focus-visible,.v-tabs button:focus-visible,.section-nav button:focus-visible{outline:3px solid var(--accent-gold);outline-offset:2px}
+.section-nav{display:flex;flex-direction:column;margin:2px 14px 8px 30px;border-left:1px solid rgba(255,255,255,.18)}
+.section-nav button{display:flex;align-items:center;gap:8px;background:none;border:0;border-radius:8px;color:#d9efe6;padding:9px 12px;margin:1px 0 1px 8px;font-size:12.5px;text-align:left;cursor:pointer}
+.section-nav button::before{content:"";width:8px;height:8px;border-radius:50%;background:#7fd1b4;flex:none}
+.section-nav button[data-v="live"]::before{background:#ff6b6b}
+.section-nav button[data-v="news"]::before{background:var(--accent-gold)}
+.section-nav button:hover{background:rgba(255,255,255,.1);color:#fff}
+.section-nav button.active{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
+.section-nav em{margin-left:auto;font-style:normal;font-size:11px;background:rgba(0,0,0,.25);border-radius:10px;padding:0 8px}
+@media (max-width:600px){.v-hl{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.v-dot{animation:none}}
+</style>
+<!-- scmm-viewer-sections:end -->
 </head>
 <body>
     <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSiteSidebar()">☰</button>
@@ -193,6 +230,11 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
         <nav class="site-sidebar-nav">
             <a href="/index.html" class="site-sidebar-link" data-page="dashboard" id="dashboardNavLink" style="display:none;">Dashboard</a>
             <a href="/viewer.html" class="site-sidebar-link" data-page="viewer">Live Broadcast</a>
+            <div class="section-nav" id="sectionNavV" role="group" aria-label="Broadcast sections">
+                <button type="button" data-v="live">Live Program <em class="v-count-live">0</em></button>
+                <button type="button" data-v="news">Adventist News <em class="v-count-news">0</em></button>
+                <button type="button" data-v="post">Announcements <em class="v-count-post">0</em></button>
+            </div>
             <a href="/about.html" class="site-sidebar-link" data-page="about">About Us</a>
             <a href="/organization.html" class="site-sidebar-link" data-page="organization">Organization</a>
             <a href="/scmm-department.html" class="site-sidebar-link" data-page="scmm-department">SCMM Department</a>
@@ -236,6 +278,17 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                 <div class="chronometer-readout-time" id="chrono-time">1:05:16 <span>PM</span></div>
                 <div class="chronometer-footer-location">Kidapawan City Time</div>
             </div>
+
+            <section class="v-hl" aria-label="What's on">
+                <div class="hl-card hl-live" id="hl-live"></div>
+                <div class="hl-card hl-news" id="hl-news"></div>
+            </section>
+
+            <nav class="v-tabs" id="vTabs" aria-label="Sections">
+                <button type="button" data-v="live" aria-selected="false"><span class="v-dot"></span>Live Program <em class="v-count-live">0</em></button>
+                <button type="button" data-v="news" aria-selected="false">Adventist News <em class="v-count-news">0</em></button>
+                <button type="button" data-v="post" aria-selected="false">Announcements <em class="v-count-post">0</em></button>
+            </nav>
 
             <div id="posts-container">
                 <div class="announcement-card"><div class="scripture-body" style="color: #666;">Loading announcements...</div></div>
@@ -314,6 +367,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
 
         window.onload = async function() {
             highlightActiveSidebarLink('viewer');
+            initTabs();
             document.getElementById('loader').style.display = 'none';
             document.getElementById('viewer-container').style.display = 'block';
 
@@ -660,6 +714,72 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
 
         let lastRenderedPostsHash = "";
 
+        // ---- Viewer sections: Live Program / Adventist News / Announcements ----
+        const V = {
+            live: { name: 'Live Program', empty: 'No live programs yet. Please check back soon.' },
+            news: { name: 'Adventist News', empty: 'No Adventist News yet. Please check back soon.' },
+            post: { name: 'Announcements', empty: 'No announcements right now. Please check back soon.' }
+        };
+        let curTab = 'live';
+        let tabLocked = false;
+        let allViewerPosts = [];
+        // Older posts have no category, so they show under Announcements.
+        const catOf = p => (p && ['live', 'news', 'post'].includes(p.category)) ? p.category : 'post';
+        function isNew(d) {
+            const t = Date.parse(d);
+            return !isNaN(t) && (Date.now() - t) < 4 * 86400000;
+        }
+
+        function initTabs() {
+            const h = location.hash.replace('#', '');
+            if (V[h]) { curTab = h; tabLocked = true; }
+            document.addEventListener('click', e => {
+                const b = e.target.closest('[data-v]');
+                if (!b) return;
+                setTab(b.dataset.v, true);
+                if (document.getElementById('siteSidebar').classList.contains('open')) toggleSiteSidebar();
+            });
+            applyTab();
+        }
+
+        function setTab(name, scroll) {
+            if (!V[name]) return;
+            curTab = name;
+            tabLocked = true;
+            history.replaceState(null, '', '#' + name);
+            applyTab();
+            renderPosts(allViewerPosts);
+            if (scroll) document.getElementById('vTabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function applyTab() {
+            document.querySelectorAll('#vTabs [data-v], #sectionNavV [data-v]').forEach(b => {
+                const on = b.dataset.v === curTab;
+                b.classList.toggle('active', on);
+                if (b.closest('#vTabs')) b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+        }
+
+        function updateHighlights(posts) {
+            const by = { live: [], news: [], post: [] };
+            (posts || []).forEach(p => by[catOf(p)].push(p));
+            Object.keys(by).forEach(k => {
+                document.querySelectorAll('.v-count-' + k).forEach(el => { el.innerText = by[k].length; });
+            });
+            if (!tabLocked && posts && posts.length) {
+                curTab = by.live.length ? 'live' : by.news.length ? 'news' : 'post';
+                tabLocked = true;
+                applyTab();
+            }
+            const l = by.live[0], n = by.news[0];
+            document.getElementById('hl-live').innerHTML = l
+                ? `<div class="hl-label"><span class="v-dot"></span>Latest live program</div><div class="hl-title">${esc(l.title)}</div><div class="hl-meta">${esc(l.date || '')}</div><button type="button" class="hl-btn" data-v="live">Watch now</button>`
+                : `<div class="hl-label">Live program</div><div class="hl-title">No live program yet</div><div class="hl-meta">Please check back soon.</div>`;
+            document.getElementById('hl-news').innerHTML = n
+                ? `<div class="hl-label">Latest Adventist news</div><div class="hl-title">${esc(n.title)}</div><div class="hl-meta">${esc(n.date || '')}</div><button type="button" class="hl-btn" data-v="news">Read the news</button>`
+                : `<div class="hl-label">Adventist news</div><div class="hl-title">No news yet</div><div class="hl-meta">Please check back soon.</div>`;
+        }
+
         async function loadViewerPosts() {
             try {
                 const response = await fetch(FIREBASE_DB_URL + "/posts.json?t=" + Date.now(), {
@@ -668,6 +788,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                 if (!response.ok) throw new Error("status " + response.status);
                 const data = await response.json();
                 const posts = Array.isArray(data) ? data : [];
+                allViewerPosts = posts;
                 renderPosts(posts);
                 setSyncStatus("connected", true);
             } catch (e) {
@@ -707,7 +828,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
             el.appendChild(frame);
         }
 
-        function parseAndEmbedVideo(text) {
+        function parseAndEmbedVideo(text, videoOnly) {
             if (!text) return '';
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             const match = text.match(urlRegex);
@@ -734,7 +855,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                     `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`, 'YouTube video - click to play');
             }
 
-            if (directUrl) {
+            if (directUrl && !(videoOnly && mediaHtml)) {
                 mediaHtml += `
                     <div style="margin-top: 12px; padding: 12px; background: #0b2545; border-radius: 6px; text-align: center;">
                         <a href="${esc(directUrl)}" target="_blank" rel="noopener" style="color: #e2b13c; font-weight: bold; text-decoration: none; font-size: 14px; word-break: break-all;">
@@ -749,38 +870,42 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
 
         function renderPosts(posts) {
             const container = document.getElementById('posts-container');
+            updateHighlights(posts);
+            posts = (posts || []).filter(p => catOf(p) === curTab);
             if (!container) return;
             if (!posts || posts.length === 0) {
-                container.innerHTML = `<div class="announcement-card"><div class="scripture-body" style="color: #666;">No active broadcasts right now. Please check back soon.</div></div>`;
+                container.innerHTML = `<div class="announcement-card"><div class="scripture-body" style="color: #666;">${V[curTab].empty}</div></div>`;
                 lastRenderedPostsHash = "";
                 return;
             }
 
-            const currentHash = JSON.stringify(posts);
+            const currentHash = curTab + JSON.stringify(posts);
             if (currentHash === lastRenderedPostsHash) return;
             lastRenderedPostsHash = currentHash;
 
             container.innerHTML = '';
-            posts.forEach(post => {
+            posts.forEach((post, idx) => {
                 const card = document.createElement('div');
-                card.className = 'announcement-card';
-                const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""));
+                card.className = 'announcement-card' + (idx === 0 && curTab !== 'post' ? ' featured' : '');
+                const isLive = curTab === 'live';
+                const badge = (idx === 0 && curTab !== 'post' ? '<span class="v-badge ' + (isLive ? 'live' : 'latest') + '">' + (isLive ? 'Latest live program' : 'Latest news') + '</span>' : '') + (isNew(post.date) ? '<span class="v-badge new">New</span>' : '');
+                const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""), isLive);
 
                 let uploadedImageHtml = '';
-                if (post.imageUrl) {
+                if (post.imageUrl && !isLive) {
                     uploadedImageHtml = `<img src="${post.imageUrl}" style="width:100%; border-radius:8px; margin-top:12px; display:block;" alt="Post image">`;
                 }
 
                 let uploadedVideoHtml = '';
-                if (post.videoUrl) {
+                if (post.videoUrl && !isLive) {
                     uploadedVideoHtml = `<video controls preload="none" playsinline style="width:100%; border-radius:8px; margin-top:12px; display:block; background:#000;"><source src="${post.videoUrl}"></video>`;
                 }
 
                 card.innerHTML = `
                     <div class="announcement-card-header">
-                        <span class="announcement-title">${esc(post.title)}</span>
+                        <span class="announcement-title">${esc(post.title)}</span>${badge}
                     </div>
-                    <div class="scripture-body" style="color: #333; margin-top: 5px; white-space: pre-line;">${esc(post.content)}</div>
+                    <div class="scripture-body" style="color: #333; margin-top: 5px; white-space: pre-line;">${isLive ? '' : esc(post.content)}</div>
                     ${videoEmbedHtml}
                     ${uploadedImageHtml}
                     ${uploadedVideoHtml}
