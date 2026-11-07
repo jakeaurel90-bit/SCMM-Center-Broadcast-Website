@@ -175,6 +175,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
 .section-nav button::before{content:"";width:8px;height:8px;border-radius:50%;background:#7fd1b4;flex:none}
 .section-nav button[data-section="live"]::before{background:#ff6b6b}
 .section-nav button[data-section="news"]::before{background:var(--accent-gold)}
+.section-nav button[data-section="announce"]::before{background:#8ecae6}
 .section-nav button:hover{background:rgba(255,255,255,.1);color:#fff}
 .section-nav button.active{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
 .section-nav button:focus-visible{outline:2px solid var(--accent-gold);outline-offset:1px}
@@ -203,6 +204,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                 <div class="section-nav" id="sectionNav" role="group" aria-label="Dashboard sections">
                     <button type="button" data-section="live">Live Program <span class="sub-count" id="count-live">0</span></button>
                     <button type="button" data-section="news">Adventist News <span class="sub-count" id="count-news">0</span></button>
+                    <button type="button" data-section="announce">Announcements <span class="sub-count" id="count-announce">0</span></button>
                     <button type="button" data-section="post">Post <span class="sub-count" id="count-post">0</span></button>
                 </div>
                 <a href="/viewer.html" data-page="viewer">Live Broadcast</a>
@@ -252,6 +254,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                         <select id="new-post-category" onchange="setSection(this.value)">
                             <option value="live">Live Program</option>
                             <option value="news">Adventist News</option>
+                            <option value="announce">Announcements</option>
                             <option value="post">Post</option>
                         </select>
                         <input type="text" id="new-post-title" placeholder="Announcement Title..." autocomplete="off">
@@ -345,12 +348,13 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
         const SECTIONS = {
             live: { name: 'Live Program', sub: 'Live videos only. Add a Facebook or YouTube live link to publish here.', heading: '+ Add Live Program', hint: 'Paste the Facebook Live or YouTube Live link here (required)...', empty: 'No live programs yet. Add a live link above.' },
             news: { name: 'Adventist News', sub: 'Church news, kept separate from announcements.', heading: '+ Add Adventist News', hint: 'Write the news story here, or paste a link (optional)...', empty: 'No Adventist News yet. Publish the first story above.' },
-            post: { name: 'Post', sub: 'Announcements and general updates.', heading: '+ Create Global Broadcast Post', hint: 'Paste Facebook Live or YouTube Live link here (optional)...', empty: '${SECTIONS[currentSection].empty}' }
+            announce: { name: 'Announcements', sub: 'Official announcements for the mission.', heading: '+ Add Announcement', hint: 'Write the announcement here, or paste a link (optional)...', empty: 'No announcements yet. Publish the first one above.' },
+            post: { name: 'Post', sub: 'Random posts and general updates.', heading: '+ Create Global Broadcast Post', hint: 'Paste Facebook Live or YouTube Live link here (optional)...', empty: '${SECTIONS[currentSection].empty}' }
         };
         let currentSection = 'post';
         let allPosts = [];
         // Older posts have no category, so they count as Post.
-        const catOf = p => (p && ['live', 'news', 'post'].includes(p.category)) ? p.category : 'post';
+        const catOf = p => (p && ['live', 'news', 'announce', 'post'].includes(p.category)) ? p.category : 'post';
 
         function initSections() {
             const fromHash = location.hash.replace('#', '');
@@ -394,7 +398,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
         }
 
         function updateSectionCounts(posts) {
-            const c = { live: 0, news: 0, post: 0 };
+            const c = { live: 0, news: 0, announce: 0, post: 0 };
             (posts || []).forEach(p => c[catOf(p)]++);
             Object.keys(c).forEach(k => {
                 const el = document.getElementById('count-' + k);

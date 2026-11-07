@@ -210,6 +210,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
 .section-nav button::before{content:"";width:8px;height:8px;border-radius:50%;background:#7fd1b4;flex:none}
 .section-nav button[data-v="live"]::before{background:#ff6b6b}
 .section-nav button[data-v="news"]::before{background:var(--accent-gold)}
+.section-nav button[data-v="announce"]::before{background:#8ecae6}
 .section-nav button:hover{background:rgba(255,255,255,.1);color:#fff}
 .section-nav button.active{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
 .section-nav em{margin-left:auto;font-style:normal;font-size:11px;background:rgba(0,0,0,.25);border-radius:10px;padding:0 8px}
@@ -233,7 +234,8 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
             <div class="section-nav" id="sectionNavV" role="group" aria-label="Broadcast sections">
                 <button type="button" data-v="live">Live Program <em class="v-count-live">0</em></button>
                 <button type="button" data-v="news">Adventist News <em class="v-count-news">0</em></button>
-                <button type="button" data-v="post">Announcements <em class="v-count-post">0</em></button>
+                <button type="button" data-v="announce">Announcements <em class="v-count-announce">0</em></button>
+                <button type="button" data-v="post">Posts <em class="v-count-post">0</em></button>
             </div>
             <a href="/about.html" class="site-sidebar-link" data-page="about">About Us</a>
             <a href="/organization.html" class="site-sidebar-link" data-page="organization">Organization</a>
@@ -287,7 +289,8 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
             <nav class="v-tabs" id="vTabs" aria-label="Sections">
                 <button type="button" data-v="live" aria-selected="false"><span class="v-dot"></span>Live Program <em class="v-count-live">0</em></button>
                 <button type="button" data-v="news" aria-selected="false">Adventist News <em class="v-count-news">0</em></button>
-                <button type="button" data-v="post" aria-selected="false">Announcements <em class="v-count-post">0</em></button>
+                <button type="button" data-v="announce" aria-selected="false">Announcements <em class="v-count-announce">0</em></button>
+                <button type="button" data-v="post" aria-selected="false">Posts <em class="v-count-post">0</em></button>
             </nav>
 
             <div id="posts-container">
@@ -718,13 +721,14 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
         const V = {
             live: { name: 'Live Program', empty: 'No live programs yet. Please check back soon.' },
             news: { name: 'Adventist News', empty: 'No Adventist News yet. Please check back soon.' },
-            post: { name: 'Announcements', empty: 'No announcements right now. Please check back soon.' }
+            announce: { name: 'Announcements', empty: 'No announcements right now. Please check back soon.' },
+            post: { name: 'Posts', empty: 'No posts right now. Please check back soon.' }
         };
         let curTab = 'live';
         let tabLocked = false;
         let allViewerPosts = [];
         // Older posts have no category, so they show under Announcements.
-        const catOf = p => (p && ['live', 'news', 'post'].includes(p.category)) ? p.category : 'post';
+        const catOf = p => (p && ['live', 'news', 'announce', 'post'].includes(p.category)) ? p.category : 'post';
         function isNew(d) {
             const t = Date.parse(d);
             return !isNaN(t) && (Date.now() - t) < 4 * 86400000;
@@ -761,13 +765,13 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
         }
 
         function updateHighlights(posts) {
-            const by = { live: [], news: [], post: [] };
+            const by = { live: [], news: [], announce: [], post: [] };
             (posts || []).forEach(p => by[catOf(p)].push(p));
             Object.keys(by).forEach(k => {
                 document.querySelectorAll('.v-count-' + k).forEach(el => { el.innerText = by[k].length; });
             });
             if (!tabLocked && posts && posts.length) {
-                curTab = by.live.length ? 'live' : by.news.length ? 'news' : 'post';
+                curTab = by.live.length ? 'live' : by.news.length ? 'news' : by.announce.length ? 'announce' : 'post';
                 tabLocked = true;
                 applyTab();
             }
@@ -888,7 +892,7 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
                 const card = document.createElement('div');
                 card.className = 'announcement-card' + (idx === 0 && curTab !== 'post' ? ' featured' : '');
                 const isLive = curTab === 'live';
-                const badge = (idx === 0 && curTab !== 'post' ? '<span class="v-badge ' + (isLive ? 'live' : 'latest') + '">' + (isLive ? 'Latest live program' : 'Latest news') + '</span>' : '') + (isNew(post.date) ? '<span class="v-badge new">New</span>' : '');
+                const badge = (idx === 0 && curTab !== 'post' ? '<span class="v-badge ' + (isLive ? 'live' : 'latest') + '">' + (isLive ? 'Latest live program' : curTab === 'announce' ? 'Latest announcement' : 'Latest news') + '</span>' : '') + (isNew(post.date) ? '<span class="v-badge new">New</span>' : '');
                 const videoEmbedHtml = parseAndEmbedVideo((post.content || "") + " " + (post.title || ""), isLive);
 
                 let uploadedImageHtml = '';
