@@ -188,6 +188,27 @@ footer{background-color:#0a4d3c!important;color:#cfe5db!important}
 .move-select{font-size:11px;padding:5px 6px;border:1px solid var(--line);border-radius:4px;background:#fff8ea;color:var(--ink)}
 </style>
 <!-- scmm-sections:end -->
+<!-- scmm-responsive:start -->
+<style>
+.dashboard-grid>*,.left-column-group{min-width:0}
+.video-container{height:auto;aspect-ratio:16/9}
+.theme-banner{height:auto;min-height:clamp(140px,20vw,200px)}
+.scripture-display-rack{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.announcement-card-header{flex-wrap:wrap;gap:8px}
+.sidebar-brand{height:100dvh}
+@media (max-width:1100px){
+ .dashboard-grid{grid-template-columns:1fr}
+}
+@media (max-width:900px){
+ .sidebar-brand{transform:translateX(-100%)}
+ .sidebar-brand.open{transform:translateX(0)}
+ .sidebar-toggle-btn{display:block}
+ .main-workspace{margin-left:0}
+ header{padding:12px 14px 12px 64px;flex-wrap:wrap;gap:10px}
+ .dashboard-grid{padding:12px}
+}
+</style>
+<!-- scmm-responsive:end -->
 </head>
 <body>
 
