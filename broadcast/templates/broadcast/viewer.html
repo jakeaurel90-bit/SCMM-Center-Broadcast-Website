@@ -279,21 +279,11 @@ body{overflow-x:hidden}
 .open-link a{font-size:13px!important}
 </style>
 <!-- scmm-posts-layout:end -->
-<!-- scmm-post-cards:start -->
+<!-- scmm-posts-feed:start -->
 <style>
-#posts-container[data-tab="post"]{gap:22px}
-#posts-container[data-tab="post"] .announcement-card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--accent-gold);border-radius:16px;padding:20px;box-shadow:0 6px 18px rgba(40,50,30,.12);transition:transform .15s ease,box-shadow .15s ease}
-#posts-container[data-tab="post"] .announcement-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(40,50,30,.18)}
-#posts-container[data-tab="post"] .announcement-card-header{border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:14px}
-#posts-container[data-tab="post"] .announcement-title{font-size:17px;letter-spacing:.2px}
-#posts-container[data-tab="post"] .scripture-body{font-size:14.5px;line-height:1.6}
-#posts-container[data-tab="post"] .announcement-card > div:last-child{border-top:1px solid var(--line);color:#6b6a55!important;font-size:11px!important;font-weight:600}
-@media (prefers-reduced-motion:reduce){
- #posts-container[data-tab="post"] .announcement-card{transition:none}
- #posts-container[data-tab="post"] .announcement-card:hover{transform:none}
-}
+#posts-container[data-tab="post"]{grid-template-columns:1fr;gap:16px}
 </style>
-<!-- scmm-post-cards:end -->
+<!-- scmm-posts-feed:end -->
 </head>
 <body>
     <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSiteSidebar()">☰</button>
